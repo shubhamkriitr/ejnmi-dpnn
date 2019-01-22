@@ -36,7 +36,7 @@ Min -0.13825107
 std.dev. 2.7348104
 
 """
-gpu = 1
+gpu = 0
 #print("available_devices",available_devices)
 os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu)
 mn_v = -3173.77#min value
@@ -46,24 +46,21 @@ tf_mx = 11.497833#maxs_value for TF_DATA
 tf_mn = -0.13825107
 max_fold = 5
 
-data_range_pd = [(0,90), (91,120), (121,256)]#parts of the parkinsond dataset to be used
 initial_set = 1
-#lrs = [1e-3,5*1e-4,0.0001,5*1e-5,1e-5]
-###Till SET 3 has been done
+
 lrs = [1e-4]
 
 set_num = initial_set-1
 for lr in lrs:
     set_num+=1
     set_id =ut.append_time_string( "_SET_{}_lr1e6_{}_".format(set_num,int(lr*1e6) ))+"_"
-    #set_id =ut.append_time_string( "_SET_{}_lr1e6_".format(set_num))+"_"
     
     for fold in range(1,max_fold+1):
         tf.reset_default_graph()
         log_list = []#add items to store in a log file
         #%%SET PARAMS
         note = "RUNNING_PXNET_FISRT_HALF_MINMAXNORM FOLDS INCLUDE smoothed \
-        data from Parkinson dataset also. TF DATA is also normalized to 0..1\
+        data only from Dataset-2. TF DATA is also normalized to 0..1\
         and SSIM + L2 loss is being used."
         log_list.append({"Note":note})
         
@@ -74,7 +71,7 @@ for lr in lrs:
                  "save_step":5,#num of epoch after which a checkpoint is saved
                }
         
-        data_range = [[0,1076]]#parts of the dataset to  be used
+        data_range = [[0,1076]]#parts of the dataset-2 to  be used
         
         param["max_fold"] = max_fold
         param["fold"] = fold
@@ -85,7 +82,7 @@ for lr in lrs:
         CWD = os.getcwd()
         PD = os.path.abspath(os.pardir)
         
-        model_name = "EXP_21SIG_replica"+set_id+"fold_"+str(fold)+"_"
+        model_name = "EXP_N_1_pre_stage1_"+set_id+"fold_"+str(fold)+"_"
         model_name = ut.append_time_string(model_name)
         
         if not ut.does_exist(CWD,"Checkpoints"):
@@ -119,28 +116,11 @@ for lr in lrs:
         X_val, Y_val = data.get_smoothed_pretraining_TF_data(ranges=s)
         X_val = X_val[:,:,:,:,0]
         
-        
-        sp_pd = ut.get_split_ranges(data_range_pd,fold,max_fold)
-        r_pd = sp_pd["train"]
-        s_pd = sp_pd["val"]
-        
-        X_pd , Y_pd = data.get_smoothed_parkinson_TF_data(ranges=r_pd)
-        X_val_pd, Y_val_pd = data.get_smoothed_parkinson_TF_data(ranges=s_pd)
-        
-        X_pd = X_pd[:,:,:,:,0]
-        X_val_pd = X_val_pd[:,:,:,:,0]
-        
-        X = np.concatenate([X,X_pd],axis=0)
-        Y = np.concatenate([Y,Y_pd],axis=0)
-        X_val = np.concatenate([X_val,X_val_pd],axis=0)
-        Y_val = np.concatenate([Y_val,Y_val_pd],axis=0)
-        
         print ("Val Input Shape",X_val.shape)
         log_list.append({"Val Input Shape":X_val.shape})
         
         
         log_list.append({"training on":r, 'validating_on':s})
-        log_list.append({"training on":r_pd, 'validating_on':s_pd})
         log_list.append({"X":X, "Y":Y, "X_val":X_val, "Y_val":Y_val})
         
         
@@ -160,7 +140,7 @@ for lr in lrs:
         
         #%%Create model
         #  may add elements to arg_dict to adjust regularizers etc.
-        arg_dict = {}
+        arg_dict = {}# Using default cost function (-SSIM_UK + MSE). Verify.                                                                                                    
         #  compression model
         comp_model = ProjectionNetFirstHalf(arg_dict)
         
