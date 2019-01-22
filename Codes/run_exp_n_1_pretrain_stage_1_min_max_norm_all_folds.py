@@ -36,7 +36,7 @@ Min -0.13825107
 std.dev. 2.7348104
 
 """
-gpu = 0
+gpu = 1
 #print("available_devices",available_devices)
 os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu)
 mn_v = -3173.77#min value
