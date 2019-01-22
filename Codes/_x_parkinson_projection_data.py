@@ -21,6 +21,9 @@ DSET_FOLDER = ROOT_D+"/Datasets"
 DEFAULT_LOC = DSET_FOLDER + os.sep + "pretraining_projection_data_copy.mat"
 TF_DATA_LOC = DSET_FOLDER+"/FactorizedResult.mat"
 P_DATA_LOC = DSET_FOLDER+"/P_DATA.h5"
+NEW_DSET_FOLDER = ROOT_D+"/Datasets/2019_JAN_EJNMMI" + "/Sample"  # TODO: Remove Sample
+NEW_DEV_DATA_LOC = NEW_DSET_FOLDER + os.sep + "Development.mat"
+NEW_TEST_DATA_LOC = NEW_DSET_FOLDER+"/BlindTest.mat"
 
 def load_mat_file (file_loc):
     return sio.loadmat(file_loc)
@@ -186,13 +189,17 @@ def create_parkinson_tf_dataset (IP_VOL_LOC, TF_DATA_LOC, OP_LOC):
 
 #%%
 if __name__ == "__main__":
+    L  = describe_mat(NEW_TEST_DATA_LOC)
+    M = load_mat_file(NEW_TEST_DATA_LOC)
+    import pdb
+    pdb.set_trace()
 #      L = describe_mat(TF_DATA_LOC)
 #      
 #      x = input("=="*20)
 #      L = describe_mat(DEFAULT_LOC)
 #      x = input("=="*20)
-      op_loc = DSET_FOLDER+os.sep+"parkinson_with_tf_data.h5"
-      create_parkinson_tf_dataset(P_DATA_LOC, TF_DATA_LOC, op_loc)
+#      op_loc = DSET_FOLDER+os.sep+"parkinson_with_tf_data.h5"
+#      create_parkinson_tf_dataset(P_DATA_LOC, TF_DATA_LOC, op_loc)
 #    op_loc = DSET_FOLDER+os.sep+"pretraining_tensor_factorized_data.h5"
 #    create_pretraining_tf_dataset(DEFAULT_LOC, TF_DATA_LOC, op_loc)
     
