@@ -24,6 +24,8 @@ P_DATA_LOC = DSET_FOLDER+"/P_DATA.h5"
 NEW_DSET_FOLDER = ROOT_D+"/Datasets/2019_JAN_EJNMMI" + "/Sample"  # TODO: Remove Sample
 NEW_DEV_DATA_LOC = NEW_DSET_FOLDER + os.sep + "Development.mat"
 NEW_TEST_DATA_LOC = NEW_DSET_FOLDER+"/BlindTest.mat"
+NEW_DEV_DATA_LOC_H5 = NEW_DSET_FOLDER + os.sep + "new_development_data.h5"
+NEW_TEST_DATA_LOC_H5 = NEW_DSET_FOLDER+"/new_blindtest_data.h5"
 
 def load_mat_file (file_loc):
     return sio.loadmat(file_loc)
@@ -184,15 +186,138 @@ def create_parkinson_tf_dataset (IP_VOL_LOC, TF_DATA_LOC, OP_LOC):
     op.close()
     f_ip.close()
 
+# Code for creating New TEST Dataset 
+def get_sorted_array_of_keys(data_dict, condition = None):
+    """Generates a sorted array of keys from dataset
+
+    Creates a sorted list of keys corresponding to array items,
+    ignoring the keys for non-array items
+
+    Args:
+        data_dict : `dictionary` returned by `load_mat_file`
+        condition : A function taking key(`string`) as argument and returning
+        True if that key refers to an array item and False otherwise.
+    """
+    sl = []
+    # print(data_dict)
+    print(data_dict.keys())
+    for key in data_dict.keys():
+        if condition(key):
+            sl.append(key)
+    sl.sort()
+    return tuple(sl)
+
+def condition_on_test_data_keys(key):
+    if ("sw" in key):
+        return True
+    return False
+
+def create_new_test_dataset(ip_file_loc, op_file_loc):
+    m = load_mat_file(ip_file_loc) # data_dict
+    k = get_sorted_array_of_keys(m, condition_on_test_data_keys)
+
+    summary_path = op_file_loc[:-3]+"_summary.txt"
+    summ = open(summary_path,"w")
+    summ.write("\nInput file location: "+ip_file_loc)
+    summ.write("\nOutput file location: "+op_file_loc)
+    
+    assert(len(k)==63) # Num of volumes
+
+    shape = (63,95,69,79,1)
+    summ.write("\nOutput Dataset shape: "+str(shape))
+    # op = hf.File(op_file_loc,"w")
+    # op.create_dataset("volumes",shape=(63,95,69,79,1),dtype=np.float32)
+
+    for i in range(len(k)):
+        key = k[i]
+        assert(m[key].shape == (95,79,69))
+        d = (m[key]).reshape(95,79,69,1).astype(np.float32)
+        d = np.transpose(d, [0,2,1,3])
+        assert(d.shape==(95,69,79,1))
+        # op["volumes"][i,:,:,:,:] = d
+        summ.write("\nSr. No. "+str(i)+" <- "+key)
+    
+    # op.close()
+    summ.close()
 
 
+
+
+# TODO Code for creating New Development Dataset 
+##
+
+def  condition_on_dev_data_keys(key):
+    for k in ["MSA", "PSP", "PD"]:
+        if k in key:
+            return True
+    return False
+
+def _class_from_key(key):
+    for k in ["MSA", "PSP", "PD"]:
+        if k in key:
+            return k
+    raise(AssertionError('Key is not similar to none of the allowed class.'))
+
+
+def create_new_dev_dataset(ip_file_loc, op_file_loc):
+    m = load_mat_file(ip_file_loc) # data_dict
+    k = get_sorted_array_of_keys(m, condition_on_dev_data_keys)
+    pd_class_mapping = {0:'MSA', 1:'PSP', 2:'PD'}#DO NOT CHANGE
+    class_to_label = {'MSA':0, 'PSP':1, 'PD':2}
+    # chunks: when the keys(MSA_<n>,..,PD_<m>...PSP_.. ) are arranged in ascending order
+    # the keys correponding to MSA(label=0), PSP(label=1) and PD(label=2)
+    # lie in the following set of closed ranges.
+    chunks = {'MSA':(0,82), 'PSP':(217,245), 'PD':(83,216)}
+    #which means beak_points will be ..
+    break_points = [(0,82), (83,111), (112,245)]
+
+    summary_path = op_file_loc[:-3]+"_summary.txt"
+    summ = open(summary_path,"w")
+    summ.write("\nInput file location: "+ip_file_loc)
+    summ.write("\nOutput file location: "+op_file_loc)
+    
+    N = 246
+    assert(len(k)==N) # Num of volumes
+
+    shape = (N,95,69,79,1)
+    summ.write("\nOutput Dataset['volumes'] shape: "+str(shape))
+    summ.write("\nOutput Dataset['labels'] shape: "+str((N,1)))
+    summ.write("\nOutput Dataset['one_hot_labels'] shape: "+str((N,3,1)))
+    op = hf.File(op_file_loc,"w")
+    op.create_dataset("volumes",shape=shape,dtype=np.float32)
+    op.create_dataset("labels",shape=(N,1),dtype=np.float32)
+    op.create_dataset("one_hot_labels",shape=(N,3,1),dtype=np.float32)
+
+    for i in range(len(k)):
+        key = k[i]
+        assert(m[key].shape == (95,79,69))
+        d = (m[key]).reshape(95,79,69,1).astype(np.float32)
+        d = np.transpose(d, [0,2,1,3])
+        assert(d.shape==(95,69,79,1))
+        # op["volumes"][i,:,:,:,:] = d
+        summ.write("\nSr. No. "+str(i)+" <- "+key)
+    
+    # op.close()
+    summ.close()
 
 #%%
 if __name__ == "__main__":
-    L  = describe_mat(NEW_TEST_DATA_LOC)
-    M = load_mat_file(NEW_TEST_DATA_LOC)
     import pdb
+#%% For New Test Data
+    # L  = describe_mat(NEW_TEST_DATA_LOC)
+    # M = load_mat_file(NEW_TEST_DATA_LOC)
+    # a = get_sorted_array_of_keys(M, condition_on_test_data_keys)
+    # create_new_test_dataset(NEW_TEST_DATA_LOC, NEW_TEST_DATA_LOC_H5)
+
+#%% For New Dev Data
+    N  = describe_mat(NEW_DEV_DATA_LOC)
+    P = load_mat_file(NEW_DEV_DATA_LOC)
     pdb.set_trace()
+    # a = get_sorted_array_of_keys(M, condition_on_test_data_keys)
+    # create_new_dev_dataset(NEW_DEV_DATA_LOC, NEW_DEV_DATA_LOC_H5)
+
+    # pdb.set_trace()
+    
 #      L = describe_mat(TF_DATA_LOC)
 #      
 #      x = input("=="*20)
