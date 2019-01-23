@@ -225,8 +225,8 @@ def create_new_test_dataset(ip_file_loc, op_file_loc):
 
     shape = (63,95,69,79,1)
     summ.write("\nOutput Dataset shape: "+str(shape))
-    # op = hf.File(op_file_loc,"w")
-    # op.create_dataset("volumes",shape=(63,95,69,79,1),dtype=np.float32)
+    op = hf.File(op_file_loc,"w")
+    op.create_dataset("volumes",shape=(63,95,69,79,1),dtype=np.float32)
 
     for i in range(len(k)):
         key = k[i]
@@ -234,16 +234,16 @@ def create_new_test_dataset(ip_file_loc, op_file_loc):
         d = (m[key]).reshape(95,79,69,1).astype(np.float32)
         d = np.transpose(d, [0,2,1,3])
         assert(d.shape==(95,69,79,1))
-        # op["volumes"][i,:,:,:,:] = d
+        op["volumes"][i,:,:,:,:] = d
         summ.write("\nSr. No. "+str(i)+" <- "+key)
     
-    # op.close()
+    op.close()
     summ.close()
 
 
 
 
-# TODO Code for creating New Development Dataset 
+# Code for creating New Development Dataset 
 ##
 
 def  condition_on_dev_data_keys(key):
@@ -256,7 +256,7 @@ def _class_from_key(key):
     for k in ["MSA", "PSP", "PD"]:
         if k in key:
             return k
-    raise(AssertionError('Key is not similar to none of the allowed class.'))
+    raise(AssertionError('Key is similar to none of the allowed class.'))
 
 
 def create_new_dev_dataset(ip_file_loc, op_file_loc):
@@ -268,7 +268,7 @@ def create_new_dev_dataset(ip_file_loc, op_file_loc):
     # the keys correponding to MSA(label=0), PSP(label=1) and PD(label=2)
     # lie in the following set of closed ranges.
     chunks = {'MSA':(0,82), 'PSP':(217,245), 'PD':(83,216)}
-    #which means beak_points will be ..
+    #which means break_points will be ..
     break_points = [(0,82), (83,111), (112,245)]
 
     summary_path = op_file_loc[:-3]+"_summary.txt"
@@ -322,48 +322,23 @@ def create_new_dev_dataset(ip_file_loc, op_file_loc):
     op.close()
     summ.close()
 
-
-
-
-    for i in range(len(k)):
-        key = k[i]
-        assert(m[key].shape == (95,79,69))
-        d = (m[key]).reshape(95,79,69,1).astype(np.float32)
-        d = np.transpose(d, [0,2,1,3])
-        assert(d.shape==(95,69,79,1))
-        # op["volumes"][i,:,:,:,:] = d
-        summ.write("\nSr. No. "+str(i)+" <- "+key)
-    
-    # op.close()
-    summ.close()
-
 #%%
 if __name__ == "__main__":
     import pdb
 #%% For New Test Data
+    lmn = input("Press Enter to create New Test Dataset")
     # L  = describe_mat(NEW_TEST_DATA_LOC)
     # M = load_mat_file(NEW_TEST_DATA_LOC)
     # a = get_sorted_array_of_keys(M, condition_on_test_data_keys)
-    # create_new_test_dataset(NEW_TEST_DATA_LOC, NEW_TEST_DATA_LOC_H5)
+    create_new_test_dataset(NEW_TEST_DATA_LOC, NEW_TEST_DATA_LOC_H5)
 
 #%% For New Dev Data
-    N  = describe_mat(NEW_DEV_DATA_LOC)
-    P = load_mat_file(NEW_DEV_DATA_LOC)
-    pdb.set_trace()
-    # a = get_sorted_array_of_keys(M, condition_on_test_data_keys)
-    # create_new_dev_dataset(NEW_DEV_DATA_LOC, NEW_DEV_DATA_LOC_H5)
+    lmn = input("Press Enter to create New Development Dataset")
+    # N  = describe_mat(NEW_DEV_DATA_LOC)
+    # P = load_mat_file(NEW_DEV_DATA_LOC)
+    # a = get_sorted_array_of_keys(N, condition_on_dev_data_keys)
+    create_new_dev_dataset(NEW_DEV_DATA_LOC, NEW_DEV_DATA_LOC_H5)
 
-    # pdb.set_trace()
-    
-#      L = describe_mat(TF_DATA_LOC)
-#      
-#      x = input("=="*20)
-#      L = describe_mat(DEFAULT_LOC)
-#      x = input("=="*20)
-#      op_loc = DSET_FOLDER+os.sep+"parkinson_with_tf_data.h5"
-#      create_parkinson_tf_dataset(P_DATA_LOC, TF_DATA_LOC, op_loc)
-#    op_loc = DSET_FOLDER+os.sep+"pretraining_tensor_factorized_data.h5"
-#    create_pretraining_tf_dataset(DEFAULT_LOC, TF_DATA_LOC, op_loc)
-    
+    # pdb.set_trace()   
     
 
