@@ -18,6 +18,10 @@ DEFAULT_LOC = DSET_FOLDER+"/imdb_NormDat_IXI.mat"
 PARKINSON_TF_DATA_LOC = DSET_FOLDER+os.sep+"parkinson_with_tf_data.h5"
 SMOOTH_PARKINSON_TF_DATA_LOC = DSET_FOLDER+os.sep+"smoothed_parkinson_with_tf_data.h5"
 SMOOTH_PRETRAINING_TF_DATA_LOC = DSET_FOLDER+os.sep+"smoothed_pretraining_tensor_factorized_data.h5"
+## NEW DATASET LOCATIONS
+NEW_DSET_FOLDER = ROOT_D+"/Datasets/2019_JAN_EJNMMI" + "/Sample"  # TODO: Remove Sample
+NEW_PARKINSON_DEV_DATA_LOC_H5 = NEW_DSET_FOLDER + os.sep + "new_development_data.h5"
+NEW_PARKINSON_TEST_DATA_LOC_H5 = NEW_DSET_FOLDER+"/new_blindtest_data.h5"
 
 
 def load_mat_file(file_loc):
@@ -248,6 +252,77 @@ def carve_out_chunk(A,B, ranges=[[0, 256]]):
             X = A[ranges[j][0]:ranges[j][1]+1]
             Y = B[ranges[j][0]:ranges[j][1]+1]
     return (X,Y)
+
+#%% New Parkinson Dataset
+def get_new_dev_parkinson_cls_data(file_loc=None, ranges=[[0,245]]):
+    """
+    Input:
+        file_loc: location of the .hdf5 file.
+        ranges = [[a,b],[c,d]...] where samples ranging from [a,b] [c,d] .. to
+        be concatenated and returned
+        Output:
+            tuple of two numpy arrays (Training Inputs, Corresponding Outputs)
+    """
+    if file_loc is None:
+        file_loc = NEW_PARKINSON_DEV_DATA_LOC_H5
+    return _get_new_dev_parkinson_cls_data(file_loc, ranges)
+
+def _get_new_dev_parkinson_cls_data(file_loc=None, ranges=[[0, 256]]):
+    """
+    Input:
+        file_loc: location of the .hdf5 file.
+        ranges = [[a,b],[c,d]...] where samples ranging from [a,b] [c,d] .. to
+        be concatenated and returned
+        Output:
+            tuple of two numpy arrays (Training Inputs, Corresponding Outputs)
+    """
+    X, Y = None, None
+    with hf.File(file_loc,'r') as f:
+        vol = f["volumes"]
+        tf_map = f["one_hot_labels"]
+        for j in range(len(ranges)):
+            if j!=0:
+                X = np.concatenate([X,vol[ranges[j][0]:ranges[j][1]+1]],axis=0)
+                Y = np.concatenate([Y,tf_map[ranges[j][0]:ranges[j][1]+1]],axis=0)
+            else:
+                X = vol[ranges[j][0]:ranges[j][1]+1]
+                Y = tf_map[ranges[j][0]:ranges[j][1]+1]
+    return (X,Y)
+
+## New Test Dataset
+def get_new_test_parkinson_cls_data(file_loc=None, ranges=[[0,245]]):
+    """
+    Input:
+        file_loc: location of the .hdf5 file.
+        ranges = [[a,b],[c,d]...] where samples ranging from [a,b] [c,d] .. to
+        be concatenated and returned
+        Output:
+            tuple of two numpy arrays (Training Inputs, Corresponding Outputs)
+    """
+    if file_loc is None:
+        file_loc = NEW_PARKINSON_TEST_DATA_LOC_H5
+    return _get_new_test_parkinson_cls_data(file_loc, ranges)
+
+def _get_new_test_parkinson_cls_data(file_loc=None, ranges=[[0, 256]]):
+    """
+    Input:
+        file_loc: location of the .hdf5 file.
+        ranges = [[a,b],[c,d]...] where samples ranging from [a,b] [c,d] .. to
+        be concatenated and returned
+        Output:
+            tuple containing a numpy array (Training Inputs,)
+    """
+    X = None
+    with hf.File(file_loc,'r') as f:
+        vol = f["volumes"]
+        for j in range(len(ranges)):
+            if j!=0:
+                X = np.concatenate([X,vol[ranges[j][0]:ranges[j][1]+1]],axis=0)
+            else:
+                X = vol[ranges[j][0]:ranges[j][1]+1]
+    return (X,)
+
+#%%
 
 class DataGenerator ():
     def __init__(self, x, y, verbose=False):
