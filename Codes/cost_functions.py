@@ -33,8 +33,7 @@ def MSE (y_true, y_pred, scope="MSE"):
 def XENT  (y_true, y_pred, scope="CENT"):
     with tf.variable_scope(scope):
         y_pred = tf.clip_by_value(y_pred,1e-7,1.0)
-        cost = - tf.reduce_mean(y_true*tf.log(y_pred) +
-                                (1-y_true)*tf.log(1-y_pred+1e-7))
+        cost = - tf.reduce_mean(y_true*tf.log(y_pred))
     return cost
 
 def WTD_XENT  (y_true, y_pred, scope="CENT",WTS=[0.00019290123456790122, 0.001736111111111111, 8.573388203017832e-05]):

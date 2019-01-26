@@ -19,9 +19,9 @@ PARKINSON_TF_DATA_LOC = DSET_FOLDER+os.sep+"parkinson_with_tf_data.h5"
 SMOOTH_PARKINSON_TF_DATA_LOC = DSET_FOLDER+os.sep+"smoothed_parkinson_with_tf_data.h5"
 SMOOTH_PRETRAINING_TF_DATA_LOC = DSET_FOLDER+os.sep+"smoothed_pretraining_tensor_factorized_data.h5"
 ## NEW DATASET LOCATIONS
-NEW_DSET_FOLDER = ROOT_D+"/Datasets/2019_JAN_EJNMMI" + "/Sample"  # TODO: Remove Sample
-NEW_PARKINSON_DEV_DATA_LOC_H5 = NEW_DSET_FOLDER + os.sep + "new_development_data.h5"
-NEW_PARKINSON_TEST_DATA_LOC_H5 = NEW_DSET_FOLDER+"/new_blindtest_data.h5"
+NEW_DSET_FOLDER = ROOT_D+"/Datasets/2019_JAN_EJNMMI"
+NEW_PARKINSON_DEV_DATA_LOC_H5 = NEW_DSET_FOLDER + os.sep + "HDF/new_development_data.h5"
+NEW_PARKINSON_TEST_DATA_LOC_H5 = NEW_DSET_FOLDER+"/HDF/new_blindtest_data.h5"
 
 
 def load_mat_file(file_loc):
@@ -267,7 +267,7 @@ def get_new_dev_parkinson_cls_data(file_loc=None, ranges=[[0,245]]):
         file_loc = NEW_PARKINSON_DEV_DATA_LOC_H5
     return _get_new_dev_parkinson_cls_data(file_loc, ranges)
 
-def _get_new_dev_parkinson_cls_data(file_loc=None, ranges=[[0, 256]]):
+def _get_new_dev_parkinson_cls_data(file_loc=None, ranges=[[0, 245]]):
     """
     Input:
         file_loc: location of the .hdf5 file.
@@ -290,7 +290,7 @@ def _get_new_dev_parkinson_cls_data(file_loc=None, ranges=[[0, 256]]):
     return (X,Y)
 
 ## New Test Dataset
-def get_new_test_parkinson_cls_data(file_loc=None, ranges=[[0,245]]):
+def get_new_test_parkinson_cls_data(file_loc=None, ranges=[[0,62]]):
     """
     Input:
         file_loc: location of the .hdf5 file.
@@ -303,7 +303,7 @@ def get_new_test_parkinson_cls_data(file_loc=None, ranges=[[0,245]]):
         file_loc = NEW_PARKINSON_TEST_DATA_LOC_H5
     return _get_new_test_parkinson_cls_data(file_loc, ranges)
 
-def _get_new_test_parkinson_cls_data(file_loc=None, ranges=[[0, 256]]):
+def _get_new_test_parkinson_cls_data(file_loc=None, ranges=[[0, 62]]):
     """
     Input:
         file_loc: location of the .hdf5 file.

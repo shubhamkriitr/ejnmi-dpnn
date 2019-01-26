@@ -25,25 +25,25 @@ Min -3173.77
 std.dev. 9765.27
 ----------
 ----------
-Y_train specifications:
+New training data specifications:
 <class 'numpy.ndarray'>
-(1077, 95, 69, 1)
+(246, 95, 69, 79, 1)
 float32
-Mean 4.99517
-Median 5.86557
-Max 11.3836
-Min -0.138251
-std.dev. 2.73669
-
-
+Mean 8041.11
+Median 6372.97
+Max 92152.0
+Min 0.0
+std.dev. 7255.93
+----------
 """
-mn_v = -3173.77#min value
-mx_v = 95617.8#max value
+mn_v = 0.0#min value
+mx_v = 92152.0#max value
 max_fold = 5
-LRS = [(0,1e-4), (1e-6,1e-4), (1e-5,1e-4), (0,0.5*1e-4), (1e-6,0.5*1e-4), (0.5*1e-5,0.5*1e-4)]
+initializer = tf.contrib.layers.xavier_initializer(seed=101)
+LRS = [(1e-5,1e-4),(1e-4, 1e-3), (0.5*1e-5,0.5*1e-4)]
 initial_set_num = 1
 #%%GPU CONFIG
-gpu = 0
+gpu = 1
 os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu)
 config = tf.ConfigProto(log_device_placement=True)
 config.gpu_options.allow_growth = True
@@ -58,7 +58,7 @@ for fd in range(1,max_fold+1):
     paths[fd]=path[0][:-5]
 
 print("paths",paths)
-#sssssswait = input ("wait...")
+wait = input ("wait...Verify the models that will be used for different folds.")
 #TODO_ may want to sepcify gpu memory allocation type and GPU to use.
 for lrs in LRS:
     set_id ="EXP_22_SET_"+str(initial_set_num)+"_"+str(lrs)+"_"
@@ -71,15 +71,17 @@ for lrs in LRS:
              "epoch_length":30,#NUM of batches that constitute an epoch,
              "epochs":300,
              "save_step":5,#num of epoch after which a checkpoint is saved
-             "cost_fn":"XENT"#XENT,MSE etc.
+             "cost_fn":"XENT",# -sigma(y_t*log(y_p))
+             "initializer":initializer
            }
 
     for fold in range(1,max_fold+1):
         tf.reset_default_graph()
         log_list = []#add items to store in a log file
         #%%SET PARAMS
-        note = "FINE_TUNING_PXNET_USING_PRETRAINED_COMPRESSION_PART_OF_EXP_21"
+        note = "FINE_TUNING_PXNET_USING_PRETRAINED_COMPRESSION_PART_OF_exp_n_1s2"
         log_list.append({"Note":note})
+        log_list.append({"Using min value=":mn_v, "Using max value=":mx_v})
 
         pretrained_model = paths[fold]
 
@@ -95,7 +97,7 @@ for lrs in LRS:
         CWD = os.getcwd()
         PD = os.path.abspath(os.pardir)
 
-        model_name = "EXP_22_PXNET_GAP_SIG_FINE_TUNED"+set_id+"fold_"+str(fold)+"_"
+        model_name = "EXP_n_3_PXNET_GAP_SIG_FINE_TUNED"+set_id+"fold_"+str(fold)+"_"
         model_name = ut.append_time_string(model_name)
 
         if not ut.does_exist(CWD,"Checkpoints"):
@@ -130,14 +132,14 @@ for lrs in LRS:
 
         #%%DATA
         #fetch data
-        data_range_pd = [(0,90), (91,120), (121,256)]#parts of the parkinsond dataset to be used
+        data_range_npd = [(0,82), (83,111), (112,245)]#parts of the new parkinson dataset to be used
         #fetch data copied from exp 20
-        sp_pd = ut.get_split_ranges(data_range_pd,fold,max_fold)
+        sp_pd = ut.get_split_ranges(data_range_npd,fold,max_fold)
         r_pd = sp_pd["train"]
         s_pd = sp_pd["val"]
 
-        X_pd , Y_pd = data.get_parkinson_classification_data(ranges=r_pd)
-        X_val_pd, Y_val_pd = data.get_parkinson_classification_data(ranges=s_pd)
+        X_pd , Y_pd = data.get_new_dev_parkinson_cls_data(ranges=r_pd)
+        X_val_pd, Y_val_pd = data.get_new_dev_parkinson_cls_data(ranges=s_pd)
 
         X_pd = X_pd[:,:,:,:,0]
         X_val_pd = X_val_pd[:,:,:,:,0]
@@ -161,7 +163,8 @@ for lrs in LRS:
 
         #%%Create model
         #  may add elements to arg_dict to adjust regularizers etc.
-        arg_dict = {"cost_function":param["cost_fn"]}
+        arg_dict = {"cost_function":param["cost_fn"],
+                    "initializer":param["initializer"]}
         #  compression model
         model = ProjectionNet(arg_dict)
 
