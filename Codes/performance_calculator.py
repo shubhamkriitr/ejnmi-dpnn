@@ -50,7 +50,7 @@ def get_srno_array(ranges,dtype=np.int16):
         i = i + c_sz
     return sr_arr
 
-print(get_srno_array([[1,2],[99,100],[15,25]]))
+# print(get_srno_array([[1,2],[99,100],[15,25]]))
 
 def get_data_generators (fold_number,X_data,Y_data,break_pts):
     #DSET_LOC = data.DSET_FOLDER+os.sep+"P_DATA.h5"

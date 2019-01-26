@@ -82,5 +82,8 @@ std.dev. 2.73669
 Copied models from exp_n_1s2 for selection.
 Using all epoch@240
 
-
+# 20190126 20:28
+Need to make some changes in evaluation script.
+Model with lowest loss(e.g. from fold 4 & 5) had low TPR -- may try other models.
+Will run the finetuning again - with different seed. 
 

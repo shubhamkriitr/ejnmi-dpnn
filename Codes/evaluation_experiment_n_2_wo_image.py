@@ -23,17 +23,17 @@ from PXNET_SIGMOID_GAP import ProjectionNet as network
 
 name = "PXNET_SIGMOID_GAP"
 #%%Fetch data
-break_pts = [(0,90), (91,120), (121,256)]
+break_pts = [(0,82), (83,111), (112,245)]
 max_fold = 5
 
 
-mn_v = -3173.77#min value
-mx_v = 95617.8#max value
+mn_v = 0.0#min value
+mx_v = 92152.0#max value
 
-data_ranges=[(0,90), (91,120), (121,256)]
+data_ranges=[(0,82), (83,111), (112,245)]
 #_, Y = data.get_parkinson_classification_data (ranges=data_ranges)
 #_, X = data.get_parkinson_TF_data(ranges=data_ranges)
-X , Y = data.get_parkinson_classification_data(ranges=data_ranges)
+X , Y = data.get_new_dev_parkinson_cls_data(ranges=data_ranges)
 
 X = X[:,:,:,:,0]
 Y = Y[:,:,0]
@@ -43,19 +43,6 @@ X = (X-mn_v)/(mx_v-mn_v)
 
 model_dir = os.getcwd()+os.sep+"Checkpoints"
 #0: keys for the folds for which search term has not been specified
-
-#MAX_ACC
-#file_keys = {
-#            "SET_7":{1:["epoch_250"], 2:["epoch_275"],3:["epoch_290"],4:["epoch_293"],5:["epoch_300"]}
-#      
-#       }
-
-#MIN_LOSS
-#file_keys = {
-#            
-#            "SET_7":{1:["epoch_285"], 2:["epoch_285"],3:["epoch_180"],4:["epoch_280"],5:["epoch_275"]}
-#        
-#        }
 
 #MAX_ACC
 file_keys = {
@@ -69,7 +56,7 @@ file_keys = {
                 #         5:["epoch_240", "223218"]
                 #         }
                 "SET_":{
-                        1:["epoch_220","113617"],
+                        1:["epoch_220","113617"],# for exp_n_2_try_1
                         2:["epoch_200","114652"],
                         3:["epoch_210","115732"],
                         4:["epoch_255","120804"],
@@ -77,10 +64,10 @@ file_keys = {
                         
                 }
         }
-response = input("Select models?:"+str(file_keys))
+response = input("Select models?:(type `no` and `enter` to skip)"+str(file_keys))
 if response.lower() == "yes":
     pc.pick_models(model_dir,file_keys,max_fold,search_level=3)
-wait = input("wait")
+wait = input("wait-- press enter to proceed or Ctrl + C to abort.")
 
 #%% Calculate Scores
 
@@ -99,24 +86,8 @@ def create_score_files_and_plots(model_dir,name="Model"):
     fwbp.generate_plots(op_dir,op_dir)
 
 selected = [#"Selected_2018-02-26-100557"
-            #"Selected_2018-02-26-101300"
-            #"Selected_2018-02-26-103532"#SET_2 max acc
-            #"Selected_2018-02-26-110013-MINLS"#Min losssssssssss
-            #"Selected_2018-02-26-111344-MINLS"#set-3 minls
-            #"Selected_2018-02-26-112300-minls-6"
-            #"Selected_2018-02-26-130657-3-maxac"
-            #"Selected_2018-02-26-132811-7-ep135-minls"
-            #"Selected_2018-02-26-143127-7-maxac"
-            #"Selected_2018-02-26-171153-8-allep70"
-            #"Selected_2018-02-26-184400-8-maxac-ep90"
-            #"Selected_2018-02-27-185726-Set3-234054-ep140"
-            #"Selected_2018-02-27-205208-BEST-1-minls"
-            #"Selected_2018-02-27-205812-BEST-2-mix"
-            #"Selected_2018-02-27-223616-BEST-3"
-            #"Selected_2018-02-27-224129-BEST-4"
-            #"Selected_2018-02-28-143157-BEST-5"
-            #"Selected_2018-02-28-144047-BEST-3-2"
-            "Selected_2018-02-28-144254-BEST-3-3"
+        #     "Selected_2018-02-28-144254-BEST-3-3"
+        "Selected_2019-01-26-151956-exp_n_2_try_1",
     ]#Change it to the folder containing picked out models
 
 
@@ -129,7 +100,7 @@ for slctd in selected:
     L = os.listdir(root_model_dir)
     for folder in L:
         m_dir = root_model_dir+os.sep+folder
-        create_score_files_and_plots(m_dir,name)
+        create_score_files_and_plots(m_dir,name)# Wroks fine only for five folded evaluaiton. -- #TODO need changes
 
 
 
