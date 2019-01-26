@@ -39,9 +39,10 @@ std.dev. 7255.93
 mn_v = 0.0#min value
 mx_v = 92152.0#max value
 max_fold = 5
-initializer = tf.contrib.layers.xavier_initializer(seed=101)
-LRS = [(1e-5,1e-4),(1e-4, 1e-3), (0.5*1e-5,0.5*1e-4)]
-initial_set_num = 1
+save_step = 1 #num of epoch after which a checkpoint is saved
+initializer = tf.contrib.layers.xavier_initializer(seed=11)
+LRS = [(1e-4, 1e-3)]
+initial_set_num = 2
 #%%GPU CONFIG
 gpu = 1
 os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu)
@@ -70,7 +71,7 @@ for lrs in LRS:
              "bsz":10,
              "epoch_length":30,#NUM of batches that constitute an epoch,
              "epochs":300,
-             "save_step":5,#num of epoch after which a checkpoint is saved
+             "save_step":save_step,#num of epoch after which a checkpoint is saved
              "cost_fn":"XENT",# -sigma(y_t*log(y_p))
              "initializer":initializer
            }
@@ -233,7 +234,7 @@ for lrs in LRS:
                     print(log,"\n"+"-"*len(log))
                 lgr.record_train_summary(epoch)
                 lgr.record_val_summary(epoch)
-                if epoch%param["save_step"]==0 and epoch>65:
+                if epoch%param["save_step"]==0 and epoch>50:
                     save_as = file_name + "_epoch_{}_batch_{}".format(epoch,batch)
                     print("saving_check_point:",save_as)
                     model.saver.save(sess,save_as)
