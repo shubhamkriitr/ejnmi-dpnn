@@ -62,12 +62,20 @@ file_keys = {
 #            "SET_":{1:["epoch_170","230023"],2:["epoch_220","231858"],
 #                    3:["epoch_265","012938"],
 #                      4:["epoch_130", "012938"],5:["epoch_125","011803"]}
-                "SET_":{1:["epoch_240", "215337"],# for selecting models from experiment 1s2
-                        2:["epoch_240", "220553"],
-                        3:["epoch_240", "221440"],
-                        4:["epoch_240", "222325"],
-                        5:["epoch_240", "223218"]
-                        }
+                # "SET_":{1:["epoch_240", "215337"],# for selecting models from experiment 1s2
+                #         2:["epoch_240", "220553"],
+                #         3:["epoch_240", "221440"],
+                #         4:["epoch_240", "222325"],
+                #         5:["epoch_240", "223218"]
+                #         }
+                "SET_":{
+                        1:["epoch_220","113617"],
+                        2:["epoch_200","114652"],
+                        3:["epoch_210","115732"],
+                        4:["epoch_255","120804"],
+                        5:["epoch_200","121838"],
+                        
+                }
         }
 response = input("Select models?:"+str(file_keys))
 if response.lower() == "yes":
