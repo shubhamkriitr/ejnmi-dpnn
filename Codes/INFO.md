@@ -14,3 +14,6 @@ Added `run_exp_n_1_stage_1_min_max_norm_all_folds.py` from `dev1_hfx`'s `run_exp
 
 added ..test_old.. files for checking structure of old dataset.
 
+## 20190126 13:16
+Keeping new files related to data-generator/dataset. Preparing to merge old_finetuning_experiment_22_GAP_sigmoid.
+

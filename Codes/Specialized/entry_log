@@ -1,7 +1,0 @@
-1. 2018-01-24-2024-IST score_calculator/score_calculator.py added.
-  ---> It was used for generating score files for the projection net models.
-  ---> It is specialized for Porjection net only and needs some tweaks in dimensions for adapting it for other networks.
- 
-2. 2018-01-24-2029-IST score_calculator/_x_final_scores_and_plots.py added.
-  ---> Was used for generating plots from the ouptuts of score_calculator.py
-  ---> The group/dataset structure of the input hdf5 files must be same as it is coded in score_calculator.py
