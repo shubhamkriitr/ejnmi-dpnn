@@ -304,6 +304,133 @@ def pick_models(model_dir,file_keys,max_fold,search_level=3):
             match_terms.append(set_id)
             ut.find_and_copy(model_dir,op_dir,set_id+os.sep+"fold_"+str(fold)+"_",match_terms,search_level,False)
 
+def get_test_data_generator (X_data,Y_data):
+    test_serial = get_srno_array([(0, X_data.shape[0]-1)],np.float32)
+    X, Y = X_data, Y_data
+    return {"test":DataGenerator(X, Y, True), "test_shape":X.shape,
+            "test_serial":test_serial}
+
+def predict(saved_model_path, output_file_path, model,fold, name,X,break_pts):
+    name = name+"_fold_"+str(fold)
+    model.build_network()
+    sess = tf.Session(graph=model.graph)
+    Y = np.zeros(shape=(X.shape[0],3,1))# dummy array
+    dic = get_test_data_generator(X,Y)# second array Y is dummy
+    t_s = dic["test_shape"][0]
+    t_gen = dic["test"]
+    t_serial = dic["test_serial"]
+    model.saver.restore(sess, saved_model_path)
+    fn = output_file_path + os.sep + name+".h5"
+    with hf.File(fn,"w") as f:
+        grp = f.create_group("test")
+        run_prediction_steps(sess,model,t_s,t_gen,t_serial,grp)
+    sess.close()
+    print("CLOSED")
+
+def run_prediction_steps (sess,model,sz,gen,serial,grp,batch_size=5):
+    """Session model size, generator and hdf group """
+    grp.create_dataset("serial",dtype=np.float32,data=serial)
+    grp.create_dataset("outputs",shape=(sz,3),dtype=np.float32)
+    grp.create_dataset("td_outputs",shape=(sz,3),dtype=np.float32)
+    run_list = []
+    #ORDER: Y_OP Y_TH PROJECTIONS
+    run_list.append(model.outputs[0])# probability output vector
+    run_list.append(model.outputs[1])# one hot vector output
+    if len(model.extra_outputs)>0:
+        grp.create_dataset("projections",shape=(sz,95,69,1),dtype=np.float32)
+        run_list.append(model.extra_outputs["projections"])
+    i = 0
+    gen.reset_state_of_test_generator()
+    while True:
+        X, Y, bs = gen.get_next_test_batch(batch_size)
+        if X is None:
+            print("===OVER===")
+            break
+        print("From ",i,"to",i+bs,"="*10)
+        fd = {model.inputs[0]:X,model.labels[0]:Y}
+        if len(model.extra_outputs)>0:
+            B,C,D = sess.run(run_list,feed_dict=fd)
+            grp["outputs"][i:i+bs] = B
+            grp["td_outputs"][i:i+bs] = C
+            grp["projections"][i:i+bs] = D
+            i = i+bs
+        else:
+            B,C = sess.run(run_list,feed_dict=fd)
+            grp["outputs"][i:i+bs] = B
+            grp["td_outputs"][i:i+bs] = C
+            i = i+bs
+
+def calculate_average_prediction_stats (input_folder, output_folder, suffix,has_image=False, max_fold=5):
+    file_list = os.listdir(input_folder)
+    ofn = output_folder + os.sep + ut.append_time_string("average_output") + suffix + ".h5"
+    acl = Accumulator()
+    g = hf.File(ofn,"w")
+    
+    for fold in range(1,max_fold+1):
+        sub_str = "fold_"+str(fold)
+        for strs in file_list:
+            if sub_str in strs:
+                ifn = input_folder + os.sep + strs
+                print("Input Location:",ifn)
+                print("Output Location:",ofn)
+                f = hf.File(ifn,"r")
+                for key in ["test"]: # groups in the input hdf whihch need to be processed
+                    print("Processing--",key)
+                    grp = g.create_group(key)
+                    # TODO : Add processing logic
+                    # acl.add_array()
+                if has_image:
+                    img_loc = ofn[0:-3]
+                    os.mkdir(img_loc)
+                    for key in ["train","val"]:
+                        img = f[key+"/projections"]
+                        sr = f[key+"/serial"]
+                        for i in range(img.shape[0]):
+                            fig, ax = plt.subplots( nrows=1, ncols=1 )
+                            ax.imshow(img[i,:,:,0])
+                            fig.savefig(img_loc+os.sep+key+"_"+str(i)+"_"+str(sr[i])+".png")
+                            plt.close(fig)    # close the figure
+                f.close()
+                g.close()
+
+def generate_final_voting_stats(vote_array, weights):
+    pass
+
+
+class Accumulator:
+    def __init__(self, *args, **kwargs):
+        return super().__init__(*args, **kwargs)
+        self.arrays = {}
+    
+    def add_array(self, name, value):
+        self._add(name, value)
+    
+    def _add(self, key, value):
+        if key in self.arrays.keys():
+            self._check_consistency(key, value)
+            self.arrays[key] += value
+        else:
+            self.arrays[key] = value
+    
+    def _check_consistency(self, key, value):
+        arr = self.arrays[key]
+        assert(arr.dtype == value.dtype)
+        assert(arr.shape == value.shape)
+    
+    def _dump_array(self,key,hdf_group):
+        arr = self.arrays[key]
+        dset = hdf_group.create_create_dataset(key,shape=arr.shape,dtype=np.float32,data=arr)
+    
+    def _dump_all_arrays(self, hdf_group):
+        for key in self.arrays.keys():
+            self._dump_array(key, hdf_group)
+    
+    def dump_all(self, hdf_group):
+        self._dump_all_arrays(hdf_group)
+
+
+
+    
 
 if __name__ == "__main__":
     input_folder= "/localhome/reuter/Desktop/Project/Master/7_Projection_Net_5_fold_cross_val/Code/Checkpoints/SET-2-Avg-Pooled-Eval"
