@@ -25,7 +25,13 @@ ROOT
 """
 
 
-def create_score_sheet(root_folder, tagsep, file_tag_list=["score.h5"], fold_list=[1,2,3,4,5], dtype=np.float32):
+def create_score_sheet(root_folder, tagsep, file_tag_list=["score.h5"], fold_list=[1,2,3,4,5], dtype=np.float32, xl_file_prefix="compiled_result"):
+    columns = ["SET", "EPOCH", "FOLD", ]
+    cl = {0:"MSA", 1:"PSP", 2:"PD"} # DO NOT CHANGE
+    mtrc = {0:"TPR", 1:"TNR", 2:"PPV", 3:"NPV"}
+    for cl_idx in range(3):
+        for mt_idx in range(4):
+            columns.append(cl[cl_idx]+"_"+mtrc[mt_idx])
     files = get_h5_score_file_list(root_folder, tagsep, file_tag_list, fold_list)
     print(files)
     s = list(sorted(files.keys()))
@@ -41,7 +47,9 @@ def create_score_sheet(root_folder, tagsep, file_tag_list=["score.h5"], fold_lis
         score_arr[i] = score_row
         print(score_row)
     print(score_arr)
-    pdb.set_trace()
+    df = pd.DataFrame(score_arr, columns=columns)
+    df.to_excel(ut.append_time_string(xl_file_prefix)+".xls")
+    # pdb.set_trace()
 
 
 def get_score_array(id_column_data, score_hdf_file_loc, dtype=np.float32):
