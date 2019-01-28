@@ -16,6 +16,7 @@ from copy import deepcopy
 import utility as ut
 import imp
 import matplotlib.pyplot as plt
+import pandas as pd
 
 #Additional importds for testing
 
@@ -162,7 +163,7 @@ def _get_h5_file_list_to_combine (root_dir, extra_match_terms=[], search_at_leve
     print(L)
     return L
 
-def _extract_data_from_prediction_file(file_loc):
+def _extract_data_from_prediction_file(file_loc, dtype=np.float32):
     """ returns a tuple of 3 elements:
         (probability_array, onehot_output_array, projections)
     """
@@ -170,21 +171,68 @@ def _extract_data_from_prediction_file(file_loc):
         prob =  f["test/outputs"][:]
         onehot = f["test/td_outputs"][:]
         projxn = f["test/projections"][:]
-        prediction_data = (prob, onehot, projxn)
+        prediction_data = (prob.astype(dtype), onehot.astype(dtype), projxn.astype(dtype))
     return prediction_data
 
 class one_hot ():
     def __init__(self):
         with tf.variable_scope("one_hot"):
             self.inp = tf.placeholder(dtype=tf.float32, shape = (None, 3))
-            self.op = tf.one_hot(tf.argmax(self.input,1), tf.shape(input_)[1])
+            self.amax = tf.argmax(self.inp,1)
+            self.op = tf.one_hot(self.amax, tf.shape(self.inp)[1])
         self.sess = tf.Session()
     
     def convert(self, arr):
-        """arr.shape=(1,3)"""
+        """ x.shape=(1,3)
+            x = np.array([[0.1,0.2,0.07]], dtype=np.float32)
+            (Pdb) ohot.convert(x)
+            [array([[ 0.,  1.,  0.]], dtype=float32), array([1])]
+
+        """
         fd = {self.inp:arr}
-        return self.sess.run([self.op], fd)
+        return self.sess.run([self.op, self.amax], fd)
+
+def _dump_data_in_h5(prb, ohv, pxn, agmax, op_file_loc, dtype=np.float32):
+    with hf.File(op_file_loc, 'w') as f:
+        grp = f.create_group('test')
+        grp.create_dataset("outputs",dtype=dtype, data=prb)
+        grp.create_dataset("td_outputs",dtype=dtype, data=ohv)
+        grp.create_dataset("projections",dtype=dtype, data=pxn)
+        grp.create_dataset("class_predictions", dtype=dtype, data=agmax)
         
+def _create_colums_for_excel(n):
+    """
+    returns columns for these xls files:
+
+    ensemble_xls = output_folder+os.sep+model_name+"ensemble_"+suffix+".xls"#xl1
+    combined_prob_xls = output_folder+os.sep+model_name+"all_prob_"+suffix+".xls"#xl2
+    combined_ohv_xls = output_folder+os.sep+model_name+"all_one_hot_"+suffix+".xls"#xl3
+    combined_amax_xls = output_folder+os.sep+model_name+"all_argmax_"+suffix+".xls"#xl4
+    """
+    x = ["ENS_PROB_0","ENS_PROB_1","ENS_PROB_2",
+         "ENS_1HOT_0","ENS_1HOT_1","ENS_1HOT_2",
+         "PREDICTED_CLASS_ID"
+            ]
+    
+    y = []
+    t = []
+    for mod in range(n+1):#num of models
+        if mod == n:
+            t.append("ENSEMBLE")
+        else:
+            t.append("MODEL_"+str(mod))
+        for c in range(3):
+            if mod==n:
+                col = "COMBINED_CLS_"+str(c)
+            else:
+                col = "MODEL_"+str(mod)+"_CLS_"+str(c)
+            y.append(col)
+    z = y
+    return (x,y,z,t)
+
+
+    
+    
 
 def combine_predictions_from_h5_file(input_folder, output_folder, model_name, suffix, match_terms=[], level=1, num_rows=63, dtype=np.float32 ):
     """
@@ -197,53 +245,71 @@ def combine_predictions_from_h5_file(input_folder, output_folder, model_name, su
 
     """
     fmp = output_folder+os.sep+model_name+"_File_mapping_"+suffix+".txt" # file mapping output location
+    ensemble_h5 = output_folder+os.sep+model_name+"ensemble_"+suffix+".h5"
+    ensemble_xls = output_folder+os.sep+model_name+"ensemble_"+suffix+".xls"#xl1
+    combined_prob_xls = output_folder+os.sep+model_name+"all_prob_"+suffix+".xls"#xl2
+    combined_ohv_xls = output_folder+os.sep+model_name+"all_one_hot_"+suffix+".xls"#xl3
+    combined_amax_xls = output_folder+os.sep+model_name+"all_argmax_"+suffix+".xls"#xl4
+
+    ohot = one_hot()
     L = _get_h5_file_list_to_combine(input_folder, match_terms, level)
     mp = create_mapping(L, fmp, input_folder )
     num_models = len(L)
+
     sum_prb = np.zeros(shape=(num_rows, 3), dtype=dtype)
     sum_ohv = np.zeros(shape=(num_rows, 3), dtype=dtype)
     sum_pxn = np.zeros(shape=(num_rows,95, 69, 1), dtype=dtype)
-    final_ohv = np.zeros(shape=(num_rows, 3), dtype=dtype)
-    final_prb = np.zeros(shape=(num_rows, 3), dtype=dtype)
-    final_pxn = np.zeros(shape=(num_rows,95, 69, 1), dtype=dtype)
+    ls_prb = []
+    ls_ohv = []# lists for conacatenation to an array to be dumbed in excel file
+    ls_pxn = []
+    ls_amax = [] #argmaxs -- actual predicte class code
+
     for h in range(num_models):
         assert(L[h][(len(input_folder)+1):]==mp[h])
-        prb, ohv, pxn = _extract_data_from_prediction_file(L[h])
+        prb, ohv, pxn = _extract_data_from_prediction_file(L[h], dtype=dtype)
         print(prb.shape, ohv.shape, pxn.shape)
         print(type(prb), type(ohv), type(pxn))
+        assert(sum_prb.shape==prb.shape)
+        assert(sum_ohv.shape==ohv.shape)
+        assert(sum_pxn.shape==pxn.shape)
+        sum_prb = sum_prb + prb
+        sum_ohv = sum_ohv + ohv
+        sum_pxn = sum_pxn + pxn
+        amax = np.argmax(ohv, axis=1)
+        amax = np.expand_dims(amax, axis=1)
 
+        ls_prb.append(prb)
+        ls_ohv.append(ohv)
+        ls_amax.append(amax)
+    
+    final_prb = sum_prb/num_models
+    final_pxn = sum_pxn/num_models
+    final_ohv, final_amax = ohot.convert(final_prb)
+    final_amax = np.expand_dims(final_amax, axis=1)
+    final_ens_op = np.concatenate([final_prb, final_ohv, final_amax], axis=1) 
 
+    ls_prb.append(final_prb)
+    ls_ohv.append(final_ohv)
+    ls_amax.append(final_amax)
 
-class Accumulator:
-    def __init__(self, *args, **kwargs):
-        return super().__init__(*args, **kwargs)
-        self.arrays = {}
-    
-    def add_array(self, name, value):
-        self._add(name, value)
-    
-    def _add(self, key, value):
-        if key in self.arrays.keys():
-            self._check_consistency(key, value)
-            self.arrays[key] += value
-        else:
-            self.arrays[key] = value
-    
-    def _check_consistency(self, key, value):
-        arr = self.arrays[key]
-        assert(arr.dtype == value.dtype)
-        assert(arr.shape == value.shape)
-    
-    def _dump_array(self,key,hdf_group):
-        arr = self.arrays[key]
-        dset = hdf_group.create_create_dataset(key,shape=arr.shape,dtype=np.float32,data=arr)
-    
-    def _dump_all_arrays(self, hdf_group):
-        for key in self.arrays.keys():
-            self._dump_array(key, hdf_group)
-    
-    def dump_all(self, hdf_group):
-        self._dump_all_arrays(hdf_group)
+    all_prb = np.concatenate(ls_prb, axis=1)
+    all_ohv = np.concatenate(ls_ohv, axis=1)
+    all_amax = np.concatenate(ls_amax, axis=1)
+
+    xl1, xl2, xl3, xl4 = _create_colums_for_excel(num_models)
+    #dumping data
+    _dump_data_in_h5(final_prb, final_ohv, final_pxn, final_amax, ensemble_h5)
+    df1 = pd.DataFrame(data=final_ens_op, columns=xl1)
+    df1.to_excel(ensemble_xls)
+
+    df2 = pd.DataFrame(data=all_prb, columns=xl2)
+    df2.to_excel(combined_prob_xls)
+
+    df3 = pd.DataFrame(data=all_ohv, columns=xl3)
+    df3.to_excel(combined_ohv_xls)
+
+    df4 = pd.DataFrame(data=all_amax, columns=xl4)
+    df4.to_excel(combined_amax_xls)
 
 if __name__ == "__main__":
     import pdb

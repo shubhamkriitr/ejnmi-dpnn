@@ -57,9 +57,14 @@ if not os.path.exists(combined_op_folder):
 # h5list = tpc._get_h5_file_list_to_combine(op_folder,["DUMMY_MODEL"],1)
 # tpc.create_mapping(h5list, combined_op_folder+os.sep+"h5map.txt", op_folder)
 
-tpc.combine_predictions_from_h5_file(op_folder, combined_op_folder,
-                                    model_name="ens_DUMMY", suffix="mod",match_terms=[], level=1)
+# tpc.combine_predictions_from_h5_file(op_folder, combined_op_folder,
+#                                     model_name="ens_DUMMY", suffix="mod",match_terms=[], level=1)
 
+
+ohot = tpc.one_hot()
+
+import pdb
+pdb.set_trace()
 
 
 
