@@ -17,6 +17,8 @@ import utility as ut
 import imp
 import matplotlib.pyplot as plt
 
+#Additional importds for testing
+
 def get_srno_array(ranges,dtype=np.int16):
     """
     Returns an array of integers representing sr. no. corresponding
@@ -49,72 +51,48 @@ def get_srno_array(ranges,dtype=np.int16):
         i = i + c_sz
     return sr_arr
 
-def pick_models(model_dir,file_keys,max_fold,search_level=3,tag="", tagsep="tgsep_"):
-    op_dir =model_dir+os.sep
-    sufx = "Selected_"
-    sufx = ut.append_time_string(sufx)
-    sufx = sufx + tagsep+tag+ tagsep # tagging for listing the result in excel
-    op_dir = op_dir + os.sep + sufx
-    
-    os.mkdir(op_dir)
-    for set_id in file_keys.keys():
-        os.mkdir(op_dir+os.sep+set_id)
-        for fold in range(1,max_fold+1):
-            if fold in file_keys[set_id].keys():
-                match_terms = deepcopy(file_keys[set_id][fold])
-            else:
-                match_terms = deepcopy(file_keys[set_id][0])
-    
-            match_terms.append("fold_"+str(fold))
-            match_terms.append(set_id)
-            ut.find_and_copy(model_dir,op_dir,set_id+os.sep+"fold_"+str(fold)+"_",match_terms,search_level,False)
-    return sufx
-
 
 #%% Functions for evaluation on test dataset
-def get_model_list_for_ensemble (root_dir, match_terms=[".meta"], search_at_level = 4):
-    L = ut.find_paths(root_dir, match_terms, level=level)
+def get_model_list_to_run (root_dir, extra_match_terms=[], search_at_level = 4):
+    match_terms = [".meta"]
+    for terms in extra_match_terms:
+        match_terms.append(terms)
+    L = ut.find_paths(root_dir, match_terms, level=search_at_level)
+    L.sort()
+    print(L)
+    for i in range(len(L)):
+        L[i] = L[i][:-5]#removing .meta
+    return L
+
+def create_mapping(L, op_file_loc, root_folder):
+    model_idx_map = {}
+    for i in range(len(L)):
+        model_idx_map[i] = L[i][(len(root_folder)+1):]
+    with open(op_file_loc, 'w') as f:
+        f.write(str(model_idx_map))
+    return model_idx_map
     
 
-
-
-
-
-
-def calculate_and_store_test_scores (input_folder, output_folder, name, net, model_arg_dict,X, suffix="testscore", fold_list=[1,2,3,4,5]):
+def calculate_and_store_test_scores (input_folder, output_folder, name, net, model_arg_dict, X,
+ suffix="testscore", match_terms_to_find_model=[], search_at_level=4):
+    """Takes a list of model locations and input data(X) and creates following files:
+        1. score files named <name>_<srno>_<suffix>.h5
+        2. A text file containing mapping between model_locations and <srno>
     """
-    Assumes the following dir structure.
-    input_folder
-        |___<model folder>
-            |___<model_name_prefix>_fold_<fold_num>_<model name suffix>.<apprpriate extension>
-            |___<model_name_prefix>_fold_<fold_num>_<model name suffix>.<apprpriate extension>
-            |___<model_name_prefix>_fold_<fold_num>_<model name suffix>.<apprpriate extension>
-            ...
-    
-    Outputs:
-    output_folder
-        |___<name>_fold_1_
+    summ = open(output_folder+os.sep+"prediction_summary.txt",'w')
+    map_file_loc = output_folder+os.sep+"model_loc_mapping.txt"
+    L = get_model_list_to_run(input_folder,match_terms_to_find_model, search_at_level)
+    mp = create_mapping(L, map_file_loc, input_folder)
+    for i in range(len(L)):
+        assert(L[i][(len(input_folder)+1):]==mp[i])
+        op_score_file_locn = output_folder+os.sep+name+"_"+str(i)+"_"+suffix+".h5"
+        # prepare new graph
+        tf.reset_default_graph()
+        model_graph = net(model_arg_dict)
+        predict_and_save(L[i], op_score_file_locn, model_graph, X)
+        summ.write("Model: {}\nOutput: {}\n\n".format(L[i],op_score_file_locn)+"\n"+("="*30)+"\n")
+    summ.close()
 
-    """
-    file_list = os.listdir(input_folder)
-    for fold in fold_list:
-        sub_str = "fold_"+str(fold)
-        for strs in file_list:
-            if sub_str in strs:
-                #imp.reload(tf)
-                tf.reset_default_graph()
-                model_graph = net(model_arg_dict)
-                saved = input_folder+os.sep+strs
-                strs = os.listdir(input_folder+os.sep+strs)
-                for s in strs:
-                    if "meta" in s:
-                        strs = s
-                        break
-                strs = s[:-5]
-                saved = saved+os.sep+strs
-                print("--"*10,saved)
-                #dummy = input("wait")
-                predict(saved,output_folder,model_graph,fold,name,X)
 
 def get_test_data_generator (X_data,Y_data):
     test_serial = get_srno_array([(0, X_data.shape[0]-1)],np.float32)
@@ -122,17 +100,16 @@ def get_test_data_generator (X_data,Y_data):
     return {"test":DataGenerator(X, Y, True), "test_shape":X.shape,
             "test_serial":test_serial}
 
-def predict(saved_model_path, output_file_path, model,fold, name,X,suffix):# model here contains model.graph in which weights will be loaded
-    name = name+"_fold_"+str(fold)+"_"+suffix
+def predict_and_save(saved_model_path, output_file_loc, model, X):# model here contains model.graph in which weights will be loaded
     model.build_network()
     sess = tf.Session(graph=model.graph)
-    Y = np.zeros(shape=(X.shape[0],3,1))# dummy array
+    Y = np.zeros(shape=(X.shape[0],3))# dummy array
     dic = get_test_data_generator(X,Y)# second array Y is dummy
     t_s = dic["test_shape"][0]# number of samples
     t_gen = dic["test"]
     t_serial = dic["test_serial"]
     model.saver.restore(sess, saved_model_path)
-    fn = output_file_path + os.sep + name+".h5"
+    fn = output_file_loc
     with hf.File(fn,"w") as f:
         grp = f.create_group("test")
         run_prediction_steps(sess,model,t_s,t_gen,t_serial,grp)
@@ -262,7 +239,11 @@ class Accumulator:
         self._dump_all_arrays(hdf_group)
 
 if __name__ == "__main__":
-    pass
+    import pdb
+    rf = "/home/abhijit/nas_drive/Abhijit/Shubham/ejnmmi-dpnn/Codes/Checkpoints/ROOT_FOR_TESTING"
+    L = get_model_list_to_run(rf)
+    create_mapping(L,rf+os.sep+"test_map.txt",rf)
+    pdb.set_trace()
 
 
 

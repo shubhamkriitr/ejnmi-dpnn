@@ -16,7 +16,6 @@ import utility as ut
 import os
 import test_performance_calculator as pc
 from copy import deepcopy
-import fold_wise_bar_plot as fwbp
 import time
 
 #%%Select the network
