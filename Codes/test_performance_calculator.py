@@ -261,7 +261,6 @@ def combine_predictions_from_h5_file(input_folder, output_folder, model_name, su
     sum_pxn = np.zeros(shape=(num_rows,95, 69, 1), dtype=dtype)
     ls_prb = []
     ls_ohv = []# lists for conacatenation to an array to be dumbed in excel file
-    ls_pxn = []
     ls_amax = [] #argmaxs -- actual predicte class code
 
     for h in range(num_models):
