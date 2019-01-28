@@ -73,10 +73,10 @@ def create_mapping(L, op_file_loc, root_folder):
     return model_idx_map
     
 
-def calculate_and_store_test_scores (input_folder, output_folder, name, net, model_arg_dict, X,
+def calculate_and_store_test_predictions (input_folder, output_folder, name, net, model_arg_dict, X,
  suffix="testscore", match_terms_to_find_model=[], search_at_level=4):
     """Takes a list of model locations and input data(X) and creates following files:
-        1. score files named <name>_<srno>_<suffix>.h5
+        1. score files named model_<srno>_<name>_<suffix>.h5
         2. A text file containing mapping between model_locations and <srno>
     """
     summ = open(output_folder+os.sep+"prediction_summary.txt",'w')
@@ -85,7 +85,11 @@ def calculate_and_store_test_scores (input_folder, output_folder, name, net, mod
     mp = create_mapping(L, map_file_loc, input_folder)
     for i in range(len(L)):
         assert(L[i][(len(input_folder)+1):]==mp[i])
-        op_score_file_locn = output_folder+os.sep+name+"_"+str(i)+"_"+suffix+".h5"
+        if i<10:
+            numstr = "0"+str(i)+"_"
+        else:
+            numstr = str(i)+"_"
+        op_score_file_locn = output_folder+os.sep+"model_"+numstr+name+"_"+suffix+".h5"
         # prepare new graph
         tf.reset_default_graph()
         model_graph = net(model_arg_dict)
@@ -148,64 +152,67 @@ def run_prediction_steps (sess,model,sz,gen,serial,grp,batch_size=5):
             grp["outputs"][i:i+bs] = B
             grp["td_outputs"][i:i+bs] = C
             i = i+bs
-
-def calculate_average_prediction_stats (input_folder, output_folder, suffix="testscore",has_image=False, max_fold=5):
-    file_list = os.listdir(input_folder)
-    ofn = output_folder + os.sep + ut.append_time_string("average_output") + suffix + ".h5"
-    acl = Accumulator()
-    g = hf.File(ofn,"w")
-    
-    for fold in range(1,max_fold+1):
-        sub_str = "fold_"+str(fold)
-        for strs in file_list:
-            if sub_str in strs:
-                ifn = input_folder + os.sep + strs
-                print("Input Location:",ifn)
-                print("Output Location:",ofn)
-                f = hf.File(ifn,"r")
-                for key in ["test"]: # groups in the input hdf whihch need to be processed
-                    print("Processing--",key)
-                    grp = g.create_group(key)
-                    # TODO : Add processing logic
-                    # acl.add_array()
-                if has_image:
-                    img_loc = ofn[0:-3]
-                    os.mkdir(img_loc)
-                    for key in ["train","val"]:
-                        img = f[key+"/projections"]
-                        sr = f[key+"/serial"]
-                        for i in range(img.shape[0]):
-                            fig, ax = plt.subplots( nrows=1, ncols=1 )
-                            ax.imshow(img[i,:,:,0])
-                            fig.savefig(img_loc+os.sep+key+"_"+str(i)+"_"+str(sr[i])+".png")
-                            plt.close(fig)    # close the figure
-                f.close()
-                g.close()
-
-def generate_final_voting_stats(vote_array, weights):
-    pass
-
-
-def get_h5_score_file_list(root_folder, tagsep, file_tag_list=["testscore.h5"], fold_list=[1,2,3,4,5]):
-    """
-    Returns a dictionary of absolute file paths idenified by tag,
-    where tag = <set_number>_epoch_<number>_fold_<fold_number>
-    """
-    L = os.listdir(root_folder)
+# Helpers for combine_scores_from_h5_file
+def _get_h5_file_list_to_combine (root_dir, extra_match_terms=[], search_at_level = 1):
+    match_terms = [".h5"]
+    for terms in extra_match_terms:
+        match_terms.append(terms)
+    L = ut.find_paths(root_dir, match_terms, level=search_at_level)
     L.sort()
-    file_dict = {}
-    for d in L:
-        tag_1 = ""
-        p = root_folder + os.sep + d
-        tag_1 = p.split(tagsep)[1] # SET_1_epoch_200
-        f_list = ut.find_paths(p,file_tag_list, 3)
-        for fold in fold_list:
-            for fname in f_list:
-                if ("fold_"+str(fold)) in fname:
-                    tag = tag_1+"_fold_"+str(fold)
-                    assert(tag not in file_dict.keys())
-                    file_dict[tag] = fname
-    return file_dict
+    print(L)
+    return L
+
+def _extract_data_from_prediction_file(file_loc):
+    """ returns a tuple of 3 elements:
+        (probability_array, onehot_output_array, projections)
+    """
+    with hf.File(file_loc, "r") as f:
+        prob =  f["test/outputs"][:]
+        onehot = f["test/td_outputs"][:]
+        projxn = f["test/projections"][:]
+        prediction_data = (prob, onehot, projxn)
+    return prediction_data
+
+class one_hot ():
+    def __init__(self):
+        with tf.variable_scope("one_hot"):
+            self.inp = tf.placeholder(dtype=tf.float32, shape = (None, 3))
+            self.op = tf.one_hot(tf.argmax(self.input,1), tf.shape(input_)[1])
+        self.sess = tf.Session()
+    
+    def convert(self, arr):
+        """arr.shape=(1,3)"""
+        fd = {self.inp:arr}
+        return self.sess.run([self.op], fd)
+        
+
+def combine_predictions_from_h5_file(input_folder, output_folder, model_name, suffix, match_terms=[], level=1, num_rows=63, dtype=np.float32 ):
+    """
+    Creates following files in the output_folder:
+        1. h5 file with following structure:
+    
+    Args:
+        num_rows : number of rows in each of the arrays in the prediction files.
+        dtype : data type of he ensemble prediction values.
+
+    """
+    fmp = output_folder+os.sep+model_name+"_File_mapping_"+suffix+".txt" # file mapping output location
+    L = _get_h5_file_list_to_combine(input_folder, match_terms, level)
+    mp = create_mapping(L, fmp, input_folder )
+    num_models = len(L)
+    sum_prb = np.zeros(shape=(num_rows, 3), dtype=dtype)
+    sum_ohv = np.zeros(shape=(num_rows, 3), dtype=dtype)
+    sum_pxn = np.zeros(shape=(num_rows,95, 69, 1), dtype=dtype)
+    final_ohv = np.zeros(shape=(num_rows, 3), dtype=dtype)
+    final_prb = np.zeros(shape=(num_rows, 3), dtype=dtype)
+    final_pxn = np.zeros(shape=(num_rows,95, 69, 1), dtype=dtype)
+    for h in range(num_models):
+        assert(L[h][(len(input_folder)+1):]==mp[h])
+        prb, ohv, pxn = _extract_data_from_prediction_file(L[h])
+        print(prb.shape, ohv.shape, pxn.shape)
+        print(type(prb), type(ohv), type(pxn))
+
+
 
 class Accumulator:
     def __init__(self, *args, **kwargs):
