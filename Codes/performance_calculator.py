@@ -304,19 +304,56 @@ def pick_models(model_dir,file_keys,max_fold,search_level=3):
             match_terms.append(set_id)
             ut.find_and_copy(model_dir,op_dir,set_id+os.sep+"fold_"+str(fold)+"_",match_terms,search_level,False)
 
+#%% Functions for evaluation on test dataset
+
+def calculate_and_store_test_scores (input_folder, output_folder, name, net, model_arg_dict,X, suffix="testscore", fold_list=[1,2,3,4,5]):
+    """
+    Assumes the following dir structure.
+    input_folder
+        |___<model folder>
+            |___<model_name_prefix>_fold_<fold_num>_<model name suffix>.<apprpriate extension>
+            |___<model_name_prefix>_fold_<fold_num>_<model name suffix>.<apprpriate extension>
+            |___<model_name_prefix>_fold_<fold_num>_<model name suffix>.<apprpriate extension>
+            ...
+    
+    Outputs:
+    output_folder
+        |___<name>_fold_1_
+
+    """
+    file_list = os.listdir(input_folder)
+    for fold in fold_list:
+        sub_str = "fold_"+str(fold)
+        for strs in file_list:
+            if sub_str in strs:
+                #imp.reload(tf)
+                tf.reset_default_graph()
+                model_graph = net(model_arg_dict)
+                saved = input_folder+os.sep+strs
+                strs = os.listdir(input_folder+os.sep+strs)
+                for s in strs:
+                    if "meta" in s:
+                        strs = s
+                        break
+                strs = s[:-5]
+                saved = saved+os.sep+strs
+                print("--"*10,saved)
+                #dummy = input("wait")
+                predict(saved,output_folder,model_graph,fold,name,X)
+
 def get_test_data_generator (X_data,Y_data):
     test_serial = get_srno_array([(0, X_data.shape[0]-1)],np.float32)
     X, Y = X_data, Y_data
     return {"test":DataGenerator(X, Y, True), "test_shape":X.shape,
             "test_serial":test_serial}
 
-def predict(saved_model_path, output_file_path, model,fold, name,X,break_pts):
-    name = name+"_fold_"+str(fold)
+def predict(saved_model_path, output_file_path, model,fold, name,X,suffix):# model here contains model.graph in which weights will be loaded
+    name = name+"_fold_"+str(fold)+"_"+suffix
     model.build_network()
     sess = tf.Session(graph=model.graph)
     Y = np.zeros(shape=(X.shape[0],3,1))# dummy array
     dic = get_test_data_generator(X,Y)# second array Y is dummy
-    t_s = dic["test_shape"][0]
+    t_s = dic["test_shape"][0]# number of samples
     t_gen = dic["test"]
     t_serial = dic["test_serial"]
     model.saver.restore(sess, saved_model_path)
@@ -360,7 +397,7 @@ def run_prediction_steps (sess,model,sz,gen,serial,grp,batch_size=5):
             grp["td_outputs"][i:i+bs] = C
             i = i+bs
 
-def calculate_average_prediction_stats (input_folder, output_folder, suffix,has_image=False, max_fold=5):
+def calculate_average_prediction_stats (input_folder, output_folder, suffix="testscore",has_image=False, max_fold=5):
     file_list = os.listdir(input_folder)
     ofn = output_folder + os.sep + ut.append_time_string("average_output") + suffix + ".h5"
     acl = Accumulator()
@@ -396,7 +433,26 @@ def calculate_average_prediction_stats (input_folder, output_folder, suffix,has_
 def generate_final_voting_stats(vote_array, weights):
     pass
 
-
+def get_h5_testscore_file_list(root_folder, tagsep, file_tag_list=["score.h5"]):
+    """
+    Returns a dictionary of absolute file paths idenified by tag,
+    where tag = <set_number>_epoch_<number>_fold_<fold_number>
+    """
+    L = os.listdir(root_folder)
+    L.sort()
+    file_dict = {}
+    for d in L:
+        tag_1 = ""
+        p = root_folder + os.sep + d
+        tag_1 = p.split(tagsep)[1] # SET_1_epoch_200
+        f_list = ut.find_paths(p,file_tag_list, 2)
+        for fold in fold_list:
+            for fname in f_list:
+                if ("fold_"+str(fold)) in fname:
+                    tag = tag_1+"_fold_"+str(fold)
+                    assert(tag not in file_dict.keys())
+                    file_dict[tag] = fname
+    return file_dict
 class Accumulator:
     def __init__(self, *args, **kwargs):
         return super().__init__(*args, **kwargs)
