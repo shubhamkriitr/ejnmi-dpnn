@@ -30,10 +30,21 @@ def MSE (y_true, y_pred, scope="MSE"):
         cost = tf.losses.mean_squared_error(y_true, y_pred)
     return cost
 
-def XENT  (y_true, y_pred, scope="CENT"):
+# def XENT  (y_true, y_pred, scope="CENT"):
+#     with tf.variable_scope(scope):
+#         y_pred = tf.clip_by_value(y_pred,1e-7,1.0)
+#         cost = - tf.reduce_mean(y_true*tf.log(y_pred))
+#     return cost
+
+def INV_WEIGHTED_XENT  (y_true, y_pred, scope="INV_WTD_XENT"):
+    """USing 1-n_i/N as weight for ith class"""
+    wts = [ 0.66260159,  0.88211381,  0.45528454]
+    print("USING INV_WEIGHT : ", wts)
     with tf.variable_scope(scope):
+        wt_tnsr = tf.constant(wts, dtype=tf.float32)
         y_pred = tf.clip_by_value(y_pred,1e-7,1.0)
-        cost = - tf.reduce_mean(y_true*tf.log(y_pred))
+        wtdy_true = wt_tnsr*y_true
+        cost = - tf.reduce_mean(wtdy_true*(y_pred))
     return cost
 
 def WTD_XENT  (y_true, y_pred, scope="CENT",WTS=[0.00019290123456790122, 0.001736111111111111, 8.573388203017832e-05]):
@@ -53,10 +64,21 @@ def dice_loss (y_true, y_pred):
 
 
 if __name__ == '__main__':
-    x = tf.placeholder(dtype=tf.float32)
-    y = tf.constant(3,dtype=tf.float32)
-    mae = MAE(x,y,"COST")
-    sess = tf.Session()
-    print(sess.run(mae,feed_dict={x:1.0}) )
-    print(sess.run(mae,feed_dict={x:2.0}) )
-    print(sess.run(mae,feed_dict={x:3.0}) )
+    # x = tf.placeholder(dtype=tf.float32)
+    # y = tf.constant(3,dtype=tf.float32)
+    # mae = MAE(x,y,"COST")
+    # sess = tf.Session()
+    # print(sess.run(mae,feed_dict={x:1.0}) )
+    # print(sess.run(mae,feed_dict={x:2.0}) )
+    # print(sess.run(mae,feed_dict={x:3.0}) )
+    import numpy as np
+    yt = tf.placeholder(dtype=tf.float32, shape=(None, 3))
+    yp = tf.placeholder(dtype=tf.float32, shape=(None, 3))
+    cost = INV_WEIGHTED_XENT(yt, yp, scope="INV_WEIGHTED_XENT")
+    ypi = [[1,0,0],[1,1,1],[1,1,0]]
+    yti = [[1,0,1],[1,1,1],[1,1,0]]
+    ypi = np.array(ypi, dtype=np.float32)
+    yti = np.array(yti, dtype=np.float32)
+    with tf.Session() as sess:
+        c = sess.run([cost], feed_dict={yt:yti,yp:ypi})
+        print(c)

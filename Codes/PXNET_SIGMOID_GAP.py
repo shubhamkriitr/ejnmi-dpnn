@@ -11,13 +11,15 @@ import data
 from net import Net
 import numpy as np
 import utility as ut
-from cost_functions import MSE, XENT
+from cost_functions import MSE, INV_WEIGHTED_XENT
 
 def get_cost_fn (name):
     if name=="XENT":
-        return XENT
+        raise ValueError()#will throw error as XENT has been commented
     elif name=="MSE":
         return MSE
+    elif name=='INV_WEIGHTED_XENT':
+        return INV_WEIGHTED_XENT
     else:
         raise ValueError()
 
@@ -47,7 +49,7 @@ class ProjectionNet(Net):
         self.compression_part_var_list=None
         self.compression_part_saver = None
         self.classification_part_var_list = None
-        self.cost_function = "XENT"
+        self.cost_function = "INV_WEIGHTED_XENT"
         self._init_all(arg_dict)
 
 

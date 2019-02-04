@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Jan 31 22:11:52 2018
-Running PXNet-Fisrt Half for pretraining of PXNet-Full
 @author: shubham
 """
 import tensorflow as tf
@@ -41,8 +40,8 @@ mx_v = 92152.0#max value
 max_fold = 5
 save_step = 1 #num of epoch after which a checkpoint is saved
 initializer = tf.contrib.layers.xavier_initializer(seed=11)
-LRS = [(1e-4, 1e-3)]
-initial_set_num = 2
+LRS = [(1e-5, 1e-4),(1e-4, 1e-3)]
+initial_set_num = 3
 #%%GPU CONFIG
 gpu = 1
 os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu)
@@ -62,7 +61,7 @@ print("paths",paths)
 wait = input ("wait...Verify the models that will be used for different folds.")
 #TODO_ may want to sepcify gpu memory allocation type and GPU to use.
 for lrs in LRS:
-    set_id ="EXP_22_SET_"+str(initial_set_num)+"_"+str(lrs)+"_"
+    set_id ="EXP_n_3_SET_"+str(initial_set_num)+"_"+str(lrs)+"_"
     set_id = ut.append_time_string(set_id)
     initial_set_num+=1
 
@@ -72,7 +71,7 @@ for lrs in LRS:
              "epoch_length":30,#NUM of batches that constitute an epoch,
              "epochs":300,
              "save_step":save_step,#num of epoch after which a checkpoint is saved
-             "cost_fn":"XENT",# -sigma(y_t*log(y_p))
+             "cost_fn":"INV_WEIGHTED_XENT",# -sigma(y_t*log(y_p))
              "initializer":initializer
            }
 
@@ -80,7 +79,7 @@ for lrs in LRS:
         tf.reset_default_graph()
         log_list = []#add items to store in a log file
         #%%SET PARAMS
-        note = "FINE_TUNING_PXNET_USING_PRETRAINED_COMPRESSION_PART_OF_exp_n_1s2"
+        note = "FINE_TUNING_PXNET_USING_PRETRAINED_COMPRESSION_PART_OF_exp_n_1s2_using_INV_WEIGHTED_XENT_cost"
         log_list.append({"Note":note})
         log_list.append({"Using min value=":mn_v, "Using max value=":mx_v})
 
