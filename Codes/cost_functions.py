@@ -44,7 +44,7 @@ def INV_WEIGHTED_XENT  (y_true, y_pred, scope="INV_WTD_XENT"):
         wt_tnsr = tf.constant(wts, dtype=tf.float32)
         y_pred = tf.clip_by_value(y_pred,1e-7,1.0)
         wtdy_true = wt_tnsr*y_true
-        cost = - tf.reduce_mean(wtdy_true*(y_pred))
+        cost = - tf.reduce_mean(wtdy_true*tf.log(y_pred))
     return cost
 
 def WTD_XENT  (y_true, y_pred, scope="CENT",WTS=[0.00019290123456790122, 0.001736111111111111, 8.573388203017832e-05]):
