@@ -47,18 +47,9 @@ model_dir = os.getcwd()+os.sep+"Checkpoints"
 
 #MAX_ACC
 fl = []
-for eps in range(90, 305, 5):
-    dt  = {"SET_1":{
-                        1:["epoch_"+str(eps)],# for exp_n_2_try_1 - bin 1
-                        2:["epoch_"+str(eps)],
-                        3:["epoch_"+str(eps)],
-                        4:["epoch_"+str(eps)],
-                        5:["epoch_"+str(eps)],
-                        
-            }}
-    fl.append(dt)
+
 for eps in range(90, 301, 1):
-    dt  = {"SET_2":{
+    dt  = {"SET_5":{
                         1:["epoch_"+str(eps)],# for exp_n_2_try_2 
                         2:["epoch_"+str(eps)],
                         3:["epoch_"+str(eps)],

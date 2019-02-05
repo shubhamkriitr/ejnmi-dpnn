@@ -97,7 +97,7 @@ def get_h5_score_file_list(root_folder, tagsep, file_tag_list=["score.h5"], fold
 
         
 if __name__ == '__main__':
-    rf = "/home/abhijit/nas_drive/Abhijit/Shubham/ejnmmi-dpnn/Codes/Checkpoints/ALL_BULK"
+    rf = "/home/abhijit/nas_drive/Abhijit/Shubham/ejnmmi-dpnn/Codes/Checkpoints/ALL_BULK_SET_5"
     tagsep = "_tgx_"
     create_score_sheet(rf,tagsep)
         
