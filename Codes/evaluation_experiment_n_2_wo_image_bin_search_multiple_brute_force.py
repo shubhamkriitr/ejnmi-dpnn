@@ -49,7 +49,7 @@ model_dir = os.getcwd()+os.sep+"Checkpoints"
 fl = []
 
 for eps in range(90, 301, 1):
-    dt  = {"SET_5":{
+    dt  = {"SET_7":{
                         1:["epoch_"+str(eps)],# for exp_n_2_try_2 
                         2:["epoch_"+str(eps)],
                         3:["epoch_"+str(eps)],

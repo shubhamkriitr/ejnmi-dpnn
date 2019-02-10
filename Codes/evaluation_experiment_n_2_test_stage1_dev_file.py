@@ -30,20 +30,20 @@ max_fold = 5
 
 print("-----*****Change Min-Max values*****-----")
 mn_v = 0.0#min value
-# mx_v = 92152.0#max value
+mx_v = 92152.0#max value
 
-mx_v =  41896.2 # Actual min & max of test dataset
+# mx_v =  41896.2 # Actual min & max of test dataset
 # Min 0.0
-
+dummy_wait = input("MAX_VALUE being used:"+str(mx_v))
 # data_ranges=[(0,62),] Using default
 X ,  = data.get_new_test_parkinson_cls_data(ranges=[[0, 62]])
 
 X = X[:,:,:,:,0]
 print("-----*****Change Min-Max values*****-----")
-X = (X-mn_v)/(mx_v-mn_v)
+X = (X-mn_v)/(mx_v-mn_v+1e-7)
 
 
-input_folder = "/home/abhijit/nas_drive/Abhijit/Shubham/ejnmmi-dpnn/Codes/Checkpoints/ROOT_FOR_TESTING_3_VERIFICATION_ACTUAL_MINMAX_VALUE_USED"
+input_folder = "/home/abhijit/nas_drive/Abhijit/Shubham/ejnmmi-dpnn/Codes/Checkpoints/TEST_ROOT_SET_5_7REF_STAR"
 op_folder = input_folder+os.sep+"OUTPUTS"
 combined_op_folder = input_folder+os.sep+"ENSEMBLE_OUTPUT"
 if not os.path.exists(op_folder):
@@ -52,13 +52,14 @@ if not os.path.exists(op_folder):
 if not os.path.exists(combined_op_folder):
     os.makedirs(combined_op_folder)
 
-tpc.calculate_and_store_test_predictions(input_folder, op_folder,"PXNET_GAP_SIG_SET1.2TEST_",
+test_exp_identifier = "PXNET_GAP_SIG_WTD_SET_5_7REF_STAR"
+tpc.calculate_and_store_test_predictions(input_folder, op_folder,test_exp_identifier,
                                     net=network,model_arg_dict={},X=X,suffix="test_predns")
-h5list = tpc._get_h5_file_list_to_combine(op_folder,["PXNET_GAP_SIG_SET1.2TEST_"],1)
+h5list = tpc._get_h5_file_list_to_combine(op_folder,[test_exp_identifier],1)
 tpc.create_mapping(h5list, combined_op_folder+os.sep+"h5map.txt", op_folder)
 
 tpc.combine_predictions_from_h5_file(op_folder, combined_op_folder,
-                                    model_name="PXNET_GAP_SIG_SET1.2TEST_", suffix="_predictions",match_terms=[], level=1)
+                                    model_name=test_exp_identifier, suffix="_predictions",match_terms=[], level=1)
 
 
 

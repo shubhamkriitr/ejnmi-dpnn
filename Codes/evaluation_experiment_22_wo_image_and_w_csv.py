@@ -64,10 +64,41 @@ file_keys = {
         #              2:["epoch_265"],
         #              0:["epoch_300"]}
 
-         "SET_2":{1:["epoch_229"],
-                     4:["epoch_220"],
-                     5:["epoch_172"],
-                     0:["epoch_300"]}
+        #  "SET_2":{1:["epoch_229"],
+        #              4:["epoch_220"],
+        #              5:["epoch_172"],
+        #              0:["epoch_300"]}
+
+        # "SET_5":{1:["epoch_176"], # SET - 5 - A
+        #             2:["epoch_122"],
+        #             3:["epoch_276"],
+        #              4:["epoch_216"],
+        #              5:["epoch_187"]}
+        # "SET_7":{1:["epoch_154"], # SET - 7 -A
+        #             2:["epoch_154"],
+        #             3:["epoch_165"],
+        #              4:["epoch_235"],
+        #              5:["epoch_145"]}
+        # "SET_7":{1:["epoch_144"], # SET - 7 - B
+        #             2:["epoch_142"],
+        #             3:["epoch_222"],
+        #              4:["epoch_185"],
+        #              5:["epoch_142"]}
+        # "SET_5":{1:["epoch_183"], # SET - 5 -B
+        #             2:["epoch_124"],
+        #             3:["epoch_283"],
+        #              4:["epoch_228"],
+        #              5:["epoch_200"]}
+        # "SET_5":{1:["epoch_122"], # SET - 5SA
+        #             2:["epoch_122"],
+        #             3:["epoch_192"],# not that good
+        #              4:["epoch_127"],
+        #              5:["epoch_150"]}# not that good
+        "SET_7":{1:["epoch_122"], # SET - 7SA
+                    2:["epoch_122"],
+                    3:["epoch_150"],# not that good
+                     4:["epoch_127"],
+                     5:["epoch_126"]}
         }
 response = input("Select models?:"+str(file_keys))
 if response.lower() == "yes":
@@ -112,16 +143,16 @@ selected = [#"Selected_2018-02-26-100557"
     ]#Change it to the folder containing picked out models
 
 
-for slctd in selected:
-    root_model_dir = os.getcwd()+os.sep+"Checkpoints"+os.sep+slctd
+# for slctd in selected:
+#     root_model_dir = os.getcwd()+os.sep+"Checkpoints"+os.sep+slctd
     
     
     
     
-    L = os.listdir(root_model_dir)
-    for folder in L:
-        m_dir = root_model_dir+os.sep+folder
-        create_score_files_and_plots(m_dir,name)
+#     L = os.listdir(root_model_dir)
+#     for folder in L:
+#         m_dir = root_model_dir+os.sep+folder
+#         create_score_files_and_plots(m_dir,name)
 
 
 
