@@ -21,7 +21,9 @@ import time
 
 #%%Select the network
 from PXNET_SIGMOID_GAP import ProjectionNet as network
-
+#%%GPU CONFIG
+gpu = 1
+os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu)
 name = "PXNET_SIGMOID_GAP"
 #%%Fetch data
 break_pts = [(0,82), (83,111), (112,245)]
@@ -49,7 +51,7 @@ model_dir = os.getcwd()+os.sep+"Checkpoints"
 fl = []
 
 for eps in range(90, 301, 1):
-    dt  = {"SET_7":{
+    dt  = {"SET_11":{
                         1:["epoch_"+str(eps)],# for exp_n_2_try_2 
                         2:["epoch_"+str(eps)],
                         3:["epoch_"+str(eps)],

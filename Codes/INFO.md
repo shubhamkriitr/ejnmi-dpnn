@@ -87,3 +87,6 @@ Need to make some changes in evaluation script.
 Model with lowest loss(e.g. from fold 4 & 5) had low TPR -- may try other models.
 Will run the finetuning again - with different seed. 
 
+# 20190210 16:49 IST
+- Will be running expn_n_3 - SET_8 (with $f^{-2}$ as weights.)
+

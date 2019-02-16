@@ -41,7 +41,7 @@ max_fold = 5
 save_step = 1 #num of epoch after which a checkpoint is saved
 initializer = tf.contrib.layers.xavier_initializer(seed=108)
 LRS = [(1e-5, 1e-4)]
-initial_set_num = 7# SET-3, 4, and 6 are not valid
+initial_set_num = 12 # using 1000*(f^(-2))#11 # same as 10#10#using 100*f^(-2)#9 #8 - for this fold 4/5 had bad val characteristic#set-8 f^(-2) as weights #7# SET-3, 4, and 6 are not valid
 #%%GPU CONFIG
 gpu = 1
 os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu)

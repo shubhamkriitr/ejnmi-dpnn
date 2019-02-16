@@ -94,11 +94,61 @@ file_keys = {
         #             3:["epoch_192"],# not that good
         #              4:["epoch_127"],
         #              5:["epoch_150"]}# not that good
-        "SET_7":{1:["epoch_122"], # SET - 7SA
-                    2:["epoch_122"],
-                    3:["epoch_150"],# not that good
-                     4:["epoch_127"],
-                     5:["epoch_126"]}
+        # "SET_7":{1:["epoch_122"], # SET - 7SA
+        #             2:["epoch_122"],
+        #             3:["epoch_150"],# not that good
+        #              4:["epoch_127"],
+        #              5:["epoch_126"]}
+        # "SET_10":{1:["epoch_266"], # SET - 10A
+        #             2:["epoch_225"],
+        #             3:["epoch_287"],# 
+        #              4:["epoch_289"],
+        #              5:["epoch_238"]}
+        # "SET_10":{1:["epoch_163"], # SET - 10B
+        #             2:["epoch_130"],
+        #             3:["epoch_210"],# 
+        #              4:["epoch_200"],
+        #              5:["epoch_90"]},# remove it
+        # "SET_10":{1:["epoch_240"], # SET - 10C
+        #             2:["epoch_150"],
+        #             3:["epoch_280"],# 
+        #              4:["epoch_250"],
+        #              5:["epoch_90"]},# remove it
+        # "SET_11":{1:["epoch_254"], # SET - 11A
+        #             2:["epoch_264"],
+        #             3:["epoch_255"],# 
+        #              4:["epoch_246"],
+        #              5:["epoch_162"]},
+        # "SET_11":{1:["epoch_134"], # SET - 11B
+        #             2:["epoch_103"],
+        #             3:["epoch_210"],# 
+        #              4:["epoch_90"],#remove
+        #              5:["epoch_90"]},# remove
+        # "SET_11":{1:["epoch_150"], # SET - 11C
+        #             2:["epoch_103"],
+        #             3:["epoch_250"],# 
+        #              4:["epoch_90"],# remove
+        #              5:["epoch_90"]},#remove
+        # "SET_11":{1:["epoch_254"], # SET - 11D
+        #             2:["epoch_288"],
+        #             3:["epoch_269"],# 
+        #              4:["epoch_258"],
+        #              5:["epoch_177"]},
+        # "SET_7":{1:["epoch_154"], # NSET - 7 -A
+        #             2:["epoch_154"],
+        #             3:["epoch_165"],
+        #              4:["epoch_235"],
+        #              5:["epoch_188"]},
+        # "SET_5":{1:["epoch_289"], # NSET - 5 -B
+        #             2:["epoch_278"],
+        #             3:["epoch_296"],
+        #              4:["epoch_288"],
+        #              5:["epoch_237"]},
+        "SET_7":{1:["epoch_210"], # NSET - 7 -B
+                    2:["epoch_212"],
+                    3:["epoch_208"],
+                     4:["epoch_234"],
+                     5:["epoch_200"]},
         }
 response = input("Select models?:"+str(file_keys))
 if response.lower() == "yes":

@@ -7,6 +7,7 @@ Created on Wed Dec 20 17:03:39 2017
 """
 
 import tensorflow as tf
+import numpy as np
 
 def MAE (y_true, y_pred, scope = "MAE"):
     """Defines a node representing Mean Absloute Error b/w y_true and y_pred
@@ -36,10 +37,14 @@ def MSE (y_true, y_pred, scope="MSE"):
 #         cost = - tf.reduce_mean(y_true*tf.log(y_pred))
 #     return cost
 
-def INV_WEIGHTED_XENT  (y_true, y_pred, scope="INV_WTD_XENT"):
-    """USing 1-n_i/N as weight for ith class"""
-    wts = [ 0.66260159,  0.88211381,  0.45528454]
-    print("USING INV_WEIGHT : ", wts)
+def INV_WEIGHTED_XENT  (y_true, y_pred, scope="INV_F2_WTD_XENT"):
+    """Weighted XENT"""
+    # wts = [ 0.66260159,  0.88211381,  0.45528454]
+    # print("USing 1-n_i/N as weight for ith class" : ", wts)
+    wts = [  1.45158949e-04,   1.18906063e-03,   5.56916893e-05]
+    wts = np.array(wts, dtype=np.float32)
+    wts = wts*1000
+    print("USING f^(-2) : ", wts)
     with tf.variable_scope(scope):
         wt_tnsr = tf.constant(wts, dtype=tf.float32)
         y_pred = tf.clip_by_value(y_pred,1e-7,1.0)

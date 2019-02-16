@@ -42,8 +42,8 @@ X = X[:,:,:,:,0]
 print("-----*****Change Min-Max values*****-----")
 X = (X-mn_v)/(mx_v-mn_v+1e-7)
 
-
-input_folder = "/home/abhijit/nas_drive/Abhijit/Shubham/ejnmmi-dpnn/Codes/Checkpoints/TEST_ROOT_SET_5_7REF_STAR"
+set_id_with_selection_id = "SET_11_A_10_A"
+input_folder = "/home/abhijit/nas_drive/Abhijit/Shubham/ejnmmi-dpnn/Codes/Checkpoints/TEST_ROOT_"+set_id_with_selection_id
 op_folder = input_folder+os.sep+"OUTPUTS"
 combined_op_folder = input_folder+os.sep+"ENSEMBLE_OUTPUT"
 if not os.path.exists(op_folder):
@@ -52,7 +52,7 @@ if not os.path.exists(op_folder):
 if not os.path.exists(combined_op_folder):
     os.makedirs(combined_op_folder)
 
-test_exp_identifier = "PXNET_GAP_SIG_WTD_SET_5_7REF_STAR"
+test_exp_identifier = "PXNET_GAP_SIG_WTD_"+set_id_with_selection_id
 tpc.calculate_and_store_test_predictions(input_folder, op_folder,test_exp_identifier,
                                     net=network,model_arg_dict={},X=X,suffix="test_predns")
 h5list = tpc._get_h5_file_list_to_combine(op_folder,[test_exp_identifier],1)
