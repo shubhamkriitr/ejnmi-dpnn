@@ -22,7 +22,10 @@ SMOOTH_PRETRAINING_TF_DATA_LOC = DSET_FOLDER+os.sep+"smoothed_pretraining_tensor
 NEW_DSET_FOLDER = ROOT_D+"/Datasets/2019_JAN_EJNMMI"
 NEW_PARKINSON_DEV_DATA_LOC_H5 = NEW_DSET_FOLDER + os.sep + "HDF/new_development_data.h5"
 NEW_PARKINSON_TEST_DATA_LOC_H5 = NEW_DSET_FOLDER+"/HDF/new_blindtest_data.h5"
-
+## NEW EXTENDED DATASET LOCATIONS
+NEWEXT_DSET_FOLDER = ROOT_D+"/Datasets/2019_FEB_EJNMMI"
+NEWEXT_DEV_DATA_LOC_H5 = NEWEXT_DSET_FOLDER + "/HDF_EXT/" +  "new_extended_development_data.h5"
+NEWEXT_TEST_DATA_LOC_H5 = NEWEXT_DSET_FOLDER+ "/HDF_EXT/" +  "new_extended_blindtest_data.h5"
 
 def load_mat_file(file_loc):
     return hf.File(file_loc, 'r')
@@ -322,7 +325,79 @@ def _get_new_test_parkinson_cls_data(file_loc=None, ranges=[[0, 62]]):
                 X = vol[ranges[j][0]:ranges[j][1]+1]
     return (X,)
 
-#%%
+
+#%% Fetch functions for new_ext dataset
+#%% New ExtParkinson Dataset
+def get_newext_dev_parkinson_cls_data(file_loc=None, ranges=[[0,289]]):
+    """
+    Input:
+        file_loc: location of the .hdf5 file.
+        ranges = [[a,b],[c,d]...] where samples ranging from [a,b] [c,d] .. to
+        be concatenated and returned
+        Output:
+            tuple of two numpy arrays (Training Inputs, Corresponding Outputs)
+    """
+    if file_loc is None:
+        file_loc = NEWEXT_DEV_DATA_LOC_H5
+    return _get_newext_dev_parkinson_cls_data(file_loc, ranges)
+
+def _get_newext_dev_parkinson_cls_data(file_loc=None, ranges=[[0, 289]]):
+    """
+    Input:
+        file_loc: location of the .hdf5 file.
+        ranges = [[a,b],[c,d]...] where samples ranging from [a,b] [c,d] .. to
+        be concatenated and returned
+        Output:
+            tuple of two numpy arrays (Training Inputs, Corresponding Outputs)
+    """
+    X, Y = None, None
+    with hf.File(file_loc,'r') as f:
+        vol = f["volumes"]
+        oh_label = f["one_hot_labels"]
+        for j in range(len(ranges)):
+            if j!=0:
+                X = np.concatenate([X,vol[ranges[j][0]:ranges[j][1]+1]],axis=0)
+                Y = np.concatenate([Y,oh_label[ranges[j][0]:ranges[j][1]+1]],axis=0)
+            else:
+                X = vol[ranges[j][0]:ranges[j][1]+1]
+                Y = oh_label[ranges[j][0]:ranges[j][1]+1]
+    return (X,Y)
+
+## New EXT Test Dataset
+def get_newext_test_parkinson_cls_data(file_loc=None, ranges=[[0,107]]):
+    """
+    Input:
+        file_loc: location of the .hdf5 file.
+        ranges = [[a,b],[c,d]...] where samples ranging from [a,b] [c,d] .. to
+        be concatenated and returned
+        Output:
+            tuple of a numpy array (Test Inputs, )
+    """
+    if file_loc is None:
+        file_loc = NEWEXT_TEST_DATA_LOC_H5
+    return _get_newext_test_parkinson_cls_data(file_loc, ranges)
+
+def _get_newext_test_parkinson_cls_data(file_loc=None, ranges=[[0, 107]]):
+    """
+    Input:
+        file_loc: location of the .hdf5 file.
+        ranges = [[a,b],[c,d]...] where samples ranging from [a,b] [c,d] .. to
+        be concatenated and returned
+        Output:
+            tuple of a numpy array (Test Inputs, )
+    """
+    X = None
+    with hf.File(file_loc,'r') as f:
+        vol = f["volumes"]
+        for j in range(len(ranges)):
+            if j!=0:
+                X = np.concatenate([X,vol[ranges[j][0]:ranges[j][1]+1]],axis=0)
+            else:
+                X = vol[ranges[j][0]:ranges[j][1]+1]
+    return (X,)
+
+
+#%% DataGenerator Class
 
 class DataGenerator ():
     def __init__(self, x, y, verbose=False):
