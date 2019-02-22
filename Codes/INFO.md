@@ -90,3 +90,7 @@ Will run the finetuning again - with different seed.
 # 20190210 16:49 IST
 - Will be running expn_n_3 - SET_8 (with $f^{-2}$ as weights.)
 
+# 20190220 23:34 IST
+- Changing run_exp_n_3_pxnet_GAP_sigmoid_xavier.py -> run_exp_n_5_pxnet_GAP_sigmoid_xavier_no_pretrain.py
+- Also some changes will be made in the model of PXNET_SIGMOID_GAP.py 
+
