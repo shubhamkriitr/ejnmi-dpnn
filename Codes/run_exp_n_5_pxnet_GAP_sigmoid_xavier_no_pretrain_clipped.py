@@ -24,9 +24,20 @@ Max 2.54515
 Min -0.0328023
 std.dev. 0.426738
 ----------
+----------
+New EST test specifications:
+<class 'numpy.ndarray'>
+(108, 95, 69, 79, 1)
+float32
+Mean 0.518901
+Median 0.438323
+Max 1.84031
+Min 0.0
+std.dev. 0.425261
+----------
 """
-mn_v = -0.0328023#min value
-mx_v = 2.54515#max value 
+mn_v = 0.0#min value
+mx_v = 1.84031#max value 
 max_fold = 5
 save_step = 1 #num of epoch after which a checkpoint is saved
 LRS = [1e-4, 1e-4, 0.5*1e-4, 0.5*1e-4, 0.5*1e-4, 0.5*1e-4 ]
@@ -122,6 +133,10 @@ for lr_ in LRS:
 
         X_pd , Y_pd = data.get_newext_dev_parkinson_cls_data(ranges=r_pd)
         X_val_pd, Y_val_pd = data.get_newext_dev_parkinson_cls_data(ranges=s_pd)
+
+        #Clipping the values
+        X_pd = np.clip(X_pd, mn_v, mx_v)
+        X_val_pd = np.clip(X_val_pd, mn_v, mx_v)
 
         X_pd = X_pd[:,:,:,:,0]
         X_val_pd = X_val_pd[:,:,:,:,0]
