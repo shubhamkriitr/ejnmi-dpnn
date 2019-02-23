@@ -51,8 +51,8 @@ model_dir = os.getcwd()+os.sep+"Checkpoints"
 #MAX_ACC
 fl = []
 
-for eps in range(299, 301, 1):
-    dt  = {"SET_15":{
+for eps in range(100, 301, 1):
+    dt  = {"SET_20":{
                         1:["epoch_"+str(eps)],# for exp_n_2_try_2 
                         2:["epoch_"+str(eps)],
                         3:["epoch_"+str(eps)],
