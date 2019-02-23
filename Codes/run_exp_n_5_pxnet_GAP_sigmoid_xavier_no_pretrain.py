@@ -29,10 +29,10 @@ mn_v = -0.0328023#min value
 mx_v = 2.54515#max value 
 max_fold = 5
 save_step = 1 #num of epoch after which a checkpoint is saved
-LRS = [1e-4, 1e-4, 0.5*1e-4, 0.5*1e-4, 0.5*1e-4, 0.5*1e-4 ]
-regzr_scale =  [1e-5, 1e-6, 1e-5, 0.2*1e-5, 1e-6, 0.2*1e-6 ]
-init_seeds = [910, 910, 109, 109, 109, 109]
-initial_set_num = 22 
+LRS = [1e-4, 1e-4]
+regzr_scale =  [1e-5, 1e-6]
+init_seeds = [90, 90]
+initial_set_num = 28 
 #%%GPU CONFIG
 gpu = 1
 os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu)

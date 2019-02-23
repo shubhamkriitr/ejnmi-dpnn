@@ -234,7 +234,7 @@ def _create_colums_for_excel(n):
     
     
 
-def combine_predictions_from_h5_file(input_folder, output_folder, model_name, suffix, match_terms=[], level=1, num_rows=63, dtype=np.float32 ):
+def combine_predictions_from_h5_file(input_folder, output_folder, model_name, suffix, idx_vol_key_map, match_terms=[], level=1, num_rows=63, dtype=np.float32 ):
     """
     Creates following files in the output_folder:
         1. h5 file with following structure:
@@ -244,12 +244,14 @@ def combine_predictions_from_h5_file(input_folder, output_folder, model_name, su
         dtype : data type of he ensemble prediction values.
 
     """
+    assert(isinstance(idx_vol_key_map, dict))
     fmp = output_folder+os.sep+model_name+"_File_mapping_"+suffix+".txt" # file mapping output location
     ensemble_h5 = output_folder+os.sep+model_name+"ensemble_"+suffix+".h5"
     ensemble_xls = output_folder+os.sep+model_name+"ensemble_"+suffix+".xls"#xl1
     combined_prob_xls = output_folder+os.sep+model_name+"all_prob_"+suffix+".xls"#xl2
     combined_ohv_xls = output_folder+os.sep+model_name+"all_one_hot_"+suffix+".xls"#xl3
     combined_amax_xls = output_folder+os.sep+model_name+"all_argmax_"+suffix+".xls"#xl4
+    ensemble_xls_submit = output_folder+os.sep+model_name+"_ensemble_submit"+suffix+".xls"
 
     ohot = one_hot()
     L = _get_h5_file_list_to_combine(input_folder, match_terms, level)
@@ -309,6 +311,25 @@ def combine_predictions_from_h5_file(input_folder, output_folder, model_name, su
 
     df4 = pd.DataFrame(data=all_amax, columns=xl4)
     df4.to_excel(combined_amax_xls)
+
+    df5 = _get_class_label_list_and_volume_id_as_df(final_amax, idx_vol_key_map)
+    df5.to_excel(ensemble_xls_submit)
+
+
+def _get_class_label_list_and_volume_id_as_df(label_id_array, data_index_volume_key_map):
+    """Returns a dataframe with three columns VOLUME_ID, LABEL and PREDICTED_CLASS_ID
+    VOLUME_ID[i] is taken as data_index_key_map[i], make sure you feed the correct idx-key mapping.
+    """
+    assert(label_id_array.shape==(108,1))# raising error in case of unintended use(using partial chunks)
+    id_to_name = {0:'MSA', 1:'PSP', 2:'PD'}#DO NOT CHANGE
+    df_data = []
+    for idx in range(label_id_array.shape[0]):
+        vid = data_index_volume_key_map[idx]
+        pred_cls_id  = label_id_array[idx,0]
+        assert(pred_cls_id in [0.0, 1.0, 2.0])
+        cls_name = id_to_name[pred_cls_id]
+        df_data.append((vid, cls_name, pred_cls_id))
+    return pd.DataFrame(data=df_data, columns=['VOLUME_ID', 'LABEL', 'PREDICTED_CLASS_ID'])
 
 if __name__ == "__main__":
     import pdb

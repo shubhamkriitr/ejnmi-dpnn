@@ -24,19 +24,20 @@ from PXNET_SIGMOID_GAP import ProjectionNet as network
 #%%GPU CONFIG
 gpu = 1
 os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu)
-name = "PXNET_SIGMOID_GAP"
+name = "PXNET_SIGMOID_GAP_NP"
 #%%Fetch data
-break_pts = [(0,82), (83,111), (112,245)]
+break_pts = [(0,90), (91,140), (141,289)]#parts of the new ext parkinson dataset to be used
 max_fold = 5
 
 
-mn_v = 0.0#min value
-mx_v = 92152.0#max value
+mn_v = -0.0328023#min value
+mx_v = 2.54515#max value
+_ = input("Using min:{} and max:{}. Press emter to proceed".format(mn_v, mx_v))
 
-data_ranges=[(0,82), (83,111), (112,245)]
+data_ranges=[(0,90), (91,140), (141,289)]#parts of the new ext parkinson dataset to be used
 #_, Y = data.get_parkinson_classification_data (ranges=data_ranges)
 #_, X = data.get_parkinson_TF_data(ranges=data_ranges)
-X , Y = data.get_new_dev_parkinson_cls_data(ranges=data_ranges)
+X , Y = data.get_newext_dev_parkinson_cls_data(ranges=data_ranges)
 
 X = X[:,:,:,:,0]
 Y = Y[:,:,0]
@@ -50,8 +51,8 @@ model_dir = os.getcwd()+os.sep+"Checkpoints"
 #MAX_ACC
 fl = []
 
-for eps in range(90, 301, 1):
-    dt  = {"SET_11":{
+for eps in range(299, 301, 1):
+    dt  = {"SET_15":{
                         1:["epoch_"+str(eps)],# for exp_n_2_try_2 
                         2:["epoch_"+str(eps)],
                         3:["epoch_"+str(eps)],

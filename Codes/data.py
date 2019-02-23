@@ -26,6 +26,7 @@ NEW_PARKINSON_TEST_DATA_LOC_H5 = NEW_DSET_FOLDER+"/HDF/new_blindtest_data.h5"
 NEWEXT_DSET_FOLDER = ROOT_D+"/Datasets/2019_FEB_EJNMMI"
 NEWEXT_DEV_DATA_LOC_H5 = NEWEXT_DSET_FOLDER + "/HDF_EXT/" +  "new_extended_development_data.h5"
 NEWEXT_TEST_DATA_LOC_H5 = NEWEXT_DSET_FOLDER+ "/HDF_EXT/" +  "new_extended_blindtest_data.h5"
+NEWEXT_TEST_DATA_IDX_KEY_MAP_LOC = NEWEXT_DSET_FOLDER+ "/HDF_EXT/" +  "new_extended_blindtest_data_index_volume_key_mapping.txt"
 
 def load_mat_file(file_loc):
     return hf.File(file_loc, 'r')
@@ -396,7 +397,13 @@ def _get_newext_test_parkinson_cls_data(file_loc=None, ranges=[[0, 107]]):
                 X = vol[ranges[j][0]:ranges[j][1]+1]
     return (X,)
 
-
+def get_newext_test_parkinson_cls_data_idx_key_map(file_loc=None):
+    if file_loc is None:
+        file_loc = NEWEXT_TEST_DATA_IDX_KEY_MAP_LOC
+    kmap = None
+    with open(file_loc, 'r') as f:
+        kmap = eval(f.read())
+    return kmap
 #%% DataGenerator Class
 
 class DataGenerator ():
