@@ -130,13 +130,13 @@ def run_evaluation_steps (sess,model,sz,gen,serial,grp,batch_size=5):
             grp["td_outputs"][i:i+bs] = C
             i = i+bs
 
-def calculate_and_store_scores (input_folder, output_folder, name, net, model_arg_dict,X, Y,break_pts):
+def calculate_and_store_scores (input_folder, output_folder, name, net, model_arg_dict,X, Y,break_pts,fold_list_to_run=[1,2,3,4,5]):
     """
     Args:
         break_pts(`list`): e.g. [(0,90), (91,120), (121,256)] parts of dataset to be considered separately for fetching data for different folds.
     """
     file_list = os.listdir(input_folder)
-    for fold in range(1,6):
+    for fold in fold_list_to_run:
         sub_str = "fold_"+str(fold)
         for strs in file_list:
             if sub_str in strs:
@@ -156,9 +156,9 @@ def calculate_and_store_scores (input_folder, output_folder, name, net, model_ar
                 evaluate(saved,output_folder,model_graph,fold,name,X,Y,break_pts)
 
 
-def calculate_and_store_cf_metrics (input_folder, output_folder, suffix,has_image=False):
+def calculate_and_store_cf_metrics (input_folder, output_folder, suffix,has_image=False,fold_list_to_run=[1,2,3,4,5]):
     file_list = os.listdir(input_folder)
-    for fold in range(1,6):
+    for fold in fold_list_to_run:
         sub_str = "fold_"+str(fold)
         for strs in file_list:
             if sub_str in strs:

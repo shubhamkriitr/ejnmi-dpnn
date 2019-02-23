@@ -29,10 +29,10 @@ name = "PXNET_SIGMOID_GAP_NP"
 break_pts = [(0,90), (91,140), (141,289)]#parts of the new ext parkinson dataset to be used
 max_fold = 5
 
-
+folds_to_run = [5,]#[1,2,3,4,5]
 mn_v = -0.0328023#min value
 mx_v = 2.54515#max value
-_ = input("Using min:{} and max:{}. Press emter to proceed".format(mn_v, mx_v))
+_ = input("Using min:{} and max:{}. fold to run{} Press emter to proceed".format(mn_v, mx_v, folds_to_run))
 
 data_ranges=[(0,90), (91,140), (141,289)]#parts of the new ext parkinson dataset to be used
 #_, Y = data.get_parkinson_classification_data (ranges=data_ranges)
@@ -51,8 +51,8 @@ model_dir = os.getcwd()+os.sep+"Checkpoints"
 #MAX_ACC
 fl = []
 
-for eps in range(100, 301, 1):
-    dt  = {"SET_20":{
+for eps in range(185, 401, 1):
+    dt  = {"SET_19":{
                         1:["epoch_"+str(eps)],# for exp_n_2_try_2 
                         2:["epoch_"+str(eps)],
                         3:["epoch_"+str(eps)],
@@ -86,12 +86,12 @@ def create_score_files_and_plots(model_dir,name="Model"):
     if not os.path.exists(op_dir):
         os.mkdir(op_dir)
     
-    pc.calculate_and_store_scores(m_dir,op_dir,name,network,{},X,Y,break_pts)
+    pc.calculate_and_store_scores(m_dir,op_dir,name,network,{},X,Y,break_pts, fold_list_to_run=folds_to_run)
     ip_dir  = op_dir
     op_dir = ip_dir+os.sep+"scores"
     if not os.path.exists(op_dir):
         os.mkdir(op_dir)
-    pc.calculate_and_store_cf_metrics(ip_dir,op_dir,"score",has_image=False)
+    pc.calculate_and_store_cf_metrics(ip_dir,op_dir,"score",has_image=False, fold_list_to_run=folds_to_run)
     # fwbp.generate_plots(op_dir,op_dir)
 
 
