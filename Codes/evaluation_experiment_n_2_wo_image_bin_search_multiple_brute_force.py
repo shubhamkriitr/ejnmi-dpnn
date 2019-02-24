@@ -29,7 +29,7 @@ name = "PXNET_SIGMOID_GAP_NP"
 break_pts = [(0,90), (91,140), (141,289)]#parts of the new ext parkinson dataset to be used
 max_fold = 5
 
-folds_to_run = [2,5,]#[1,2,3,4,5]
+folds_to_run = [1,]#[1,2,3,4,5]
 mn_v = -0.0328023#min value
 mx_v = 2.54515#max value
 _ = input("Using min:{} and max:{}. fold to run{} Press emter to proceed".format(mn_v, mx_v, folds_to_run))
@@ -51,8 +51,8 @@ model_dir = os.getcwd()+os.sep+"Checkpoints"
 #MAX_ACC
 fl = []
 
-for eps in range(200, 401, 1):
-    dt  = {"SET_21":{
+for eps in range(270, 401, 1):
+    dt  = {"SET_23":{
                         1:["epoch_"+str(eps)],# for exp_n_2_try_2 
                         2:["epoch_"+str(eps)],
                         3:["epoch_"+str(eps)],

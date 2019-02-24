@@ -21,6 +21,23 @@ import fold_wise_bar_plot_and_csv as fwbp
 #%%Select the network
 from PXNET_SIGMOID_GAP import ProjectionNet as network
 
+def pick_models(model_dir,file_keys,max_fold,search_level=3):
+    op_dir =model_dir+os.sep+"Selected_"
+    op_dir = ut.append_time_string(op_dir)
+    
+    os.mkdir(op_dir)
+    for set_id in file_keys.keys():
+        os.mkdir(op_dir+os.sep+set_id)
+        for fold in range(1,max_fold+1):
+            if fold in file_keys[set_id].keys():
+                match_terms = deepcopy(file_keys[set_id][fold])
+            else:
+                match_terms = deepcopy(file_keys[set_id][0])
+    
+            match_terms.append("fold_"+str(fold))
+            match_terms.append(set_id)
+            ut.find_and_copy(model_dir,op_dir,set_id+os.sep+"fold_"+str(fold)+"_",match_terms,search_level,False)
+
 name = "PXNET_SIGMOID_GAP"
 #%%Fetch data
 break_pts = [(0,90), (91,120), (121,256)]
@@ -60,100 +77,7 @@ model_dir = os.getcwd()+os.sep+"Checkpoints"
 #MAX_ACC
 file_keys = {
             
-        #     "SET_1":{3:["epoch_250"],
-        #              2:["epoch_265"],
-        #              0:["epoch_300"]}
-
-        #  "SET_2":{1:["epoch_229"],
-        #              4:["epoch_220"],
-        #              5:["epoch_172"],
-        #              0:["epoch_300"]}
-
-        # "SET_5":{1:["epoch_176"], # SET - 5 - A
-        #             2:["epoch_122"],
-        #             3:["epoch_276"],
-        #              4:["epoch_216"],
-        #              5:["epoch_187"]}
-        # "SET_7":{1:["epoch_154"], # SET - 7 -A
-        #             2:["epoch_154"],
-        #             3:["epoch_165"],
-        #              4:["epoch_235"],
-        #              5:["epoch_145"]}
-        # "SET_7":{1:["epoch_144"], # SET - 7 - B
-        #             2:["epoch_142"],
-        #             3:["epoch_222"],
-        #              4:["epoch_185"],
-        #              5:["epoch_142"]}
-        # "SET_5":{1:["epoch_183"], # SET - 5 -B
-        #             2:["epoch_124"],
-        #             3:["epoch_283"],
-        #              4:["epoch_228"],
-        #              5:["epoch_200"]}
-        # "SET_5":{1:["epoch_122"], # SET - 5SA
-        #             2:["epoch_122"],
-        #             3:["epoch_192"],# not that good
-        #              4:["epoch_127"],
-        #              5:["epoch_150"]}# not that good
-        # "SET_7":{1:["epoch_122"], # SET - 7SA
-        #             2:["epoch_122"],
-        #             3:["epoch_150"],# not that good
-        #              4:["epoch_127"],
-        #              5:["epoch_126"]}
-        # "SET_10":{1:["epoch_266"], # SET - 10A
-        #             2:["epoch_225"],
-        #             3:["epoch_287"],# 
-        #              4:["epoch_289"],
-        #              5:["epoch_238"]}
-        # "SET_10":{1:["epoch_163"], # SET - 10B
-        #             2:["epoch_130"],
-        #             3:["epoch_210"],# 
-        #              4:["epoch_200"],
-        #              5:["epoch_90"]},# remove it
-        # "SET_10":{1:["epoch_240"], # SET - 10C
-        #             2:["epoch_150"],
-        #             3:["epoch_280"],# 
-        #              4:["epoch_250"],
-        #              5:["epoch_90"]},# remove it
-        # "SET_11":{1:["epoch_254"], # SET - 11A
-        #             2:["epoch_264"],
-        #             3:["epoch_255"],# 
-        #              4:["epoch_246"],
-        #              5:["epoch_162"]},
-        # "SET_11":{1:["epoch_134"], # SET - 11B
-        #             2:["epoch_103"],
-        #             3:["epoch_210"],# 
-        #              4:["epoch_90"],#remove
-        #              5:["epoch_90"]},# remove
-        # "SET_11":{1:["epoch_150"], # SET - 11C
-        #             2:["epoch_103"],
-        #             3:["epoch_250"],# 
-        #              4:["epoch_90"],# remove
-        #              5:["epoch_90"]},#remove
-        # "SET_11":{1:["epoch_254"], # SET - 11D
-        #             2:["epoch_288"],
-        #             3:["epoch_269"],# 
-        #              4:["epoch_258"],
-        #              5:["epoch_177"]},
-        # "SET_7":{1:["epoch_154"], # NSET - 7 -A
-        #             2:["epoch_154"],
-        #             3:["epoch_165"],
-        #              4:["epoch_235"],
-        #              5:["epoch_188"]},
-        # "SET_5":{1:["epoch_289"], # NSET - 5 -B
-        #             2:["epoch_278"],
-        #             3:["epoch_296"],
-        #              4:["epoch_288"],
-        #              5:["epoch_237"]},
-        # "SET_7":{1:["epoch_210"], # NSET - 7 -B
-        #             2:["epoch_212"],
-        #             3:["epoch_208"],
-        #              4:["epoch_234"],
-        #              5:["epoch_200"]},
-        "SET_29":{1:["epoch_210"], # SET - 28 - T
-                    2:["epoch_212"],
-                    3:["epoch_208"],
-                     4:["epoch_234"],
-                     5:["epoch_200"]},
+        "SET_15":{0:["epoch_268"],},
         }
 response = input("Select models?:"+str(file_keys))
 if response.lower() == "yes":

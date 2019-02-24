@@ -25,6 +25,8 @@ os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu)
 from PXNET_SIGMOID_GAP import ProjectionNet as network
 
 #%%Fetch data
+max_fold=5
+fold = 1
 print("-----*****Have you changed Min-Max values?*****-----")
 mn_v = -0.0328023#min value
 mx_v = 2.54515#max value 
@@ -33,14 +35,35 @@ num_test_samples = 108
 # Min 0.0
 dummy_wait = input("MAX_VALUE being used:"+str(mx_v))
 # data_ranges=[(0,62),] Using default
-X ,  = data.get_newext_test_parkinson_cls_data(ranges=[[0, 107]])
+#%%DATA
+#fetch data
+data_range_npd = [(0,90), (91,140), (141,289)]#parts of the new ext parkinson dataset to be used
+#fetch data copied from exp 20
+sp_pd = ut.get_split_ranges(data_range_npd,fold,max_fold)
+r_pd = sp_pd["train"]
+s_pd = sp_pd["val"]
+
+X_val_pd, Y_val_pd = data.get_newext_dev_parkinson_cls_data(ranges=s_pd)
+# we need 108 rows
+remaining = 108 - X_val_pd.shape[0]
+X = np.copy(X_val_pd)
+while remaining>0:
+    if remaining>X_val_pd.shape[0]:
+        X = np.concatenate([X, X_val_pd], axis=0)
+        remaining-=X_val_pd.shape[0]
+    else:
+        X = np.concatenate([X, X_val_pd[0:(remaining)]], axis=0)
+        remaining = 0
+
+
+# X ,  = data.get_newext_test_parkinson_cls_data(ranges=[[0, 107]])
 data_idx_key_map = data.get_newext_test_parkinson_cls_data_idx_key_map()
 X = X[:,:,:,:,0]
 print("-----*****Change Min-Max values*****-----")
 X = (X-mn_v)/(mx_v-mn_v)
 ## EDIT these identifiers
-set_id_with_selection_id = "SET_15_18_19_20_21"#'your folder name should be TEST_ROOT_<set_id_with_selection_id>'
-test_exp_identifier = "PXNET_GAP_SIG_WTD_NP_TEST_RESULT_"+set_id_with_selection_id
+set_id_with_selection_id = "f1_SET_15_20"#'your folder name should be TEST_ROOT_<set_id_with_selection_id>'
+test_exp_identifier = "PXNET_GAP_SIG_WTD_NP"+set_id_with_selection_id
 
 input_folder = "/home/abhijit/nas_drive/Abhijit/Shubham/ejnmmi-dpnn/Codes/Checkpoints/TEST_ROOT_"+set_id_with_selection_id
 op_folder = input_folder+os.sep+"OUTPUTS"

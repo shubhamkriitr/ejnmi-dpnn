@@ -92,6 +92,7 @@ def get_h5_score_file_list(root_folder, tagsep, file_tag_list=["score.h5"], fold
     """
     L = os.listdir(root_folder)
     L.sort()
+    L = _get_list_of_second_level_dirs(root_folder)# overriding L
     file_dict = {}
     for d in L:
         tag_1 = ""
@@ -106,10 +107,19 @@ def get_h5_score_file_list(root_folder, tagsep, file_tag_list=["score.h5"], fold
                     file_dict[tag] = fname
     return file_dict
 
-
+def _get_list_of_second_level_dirs(root_dir):
+    L = os.listdir(root_dir)
+    L.sort()
+    M = []
+    for p in L:
+        L2 = os.listdir(root_dir+os.sep+p)
+        L2.sort()
+        for q in L2:
+            M.append(p+os.sep+q)
+    return M
         
 if __name__ == '__main__':
-    rf = "/home/abhijit/nas_drive/Abhijit/Shubham/ejnmmi-dpnn/Codes/Checkpoints/ALL_BULK_SET_19"
+    rf = "/home/abhijit/nas_drive/Abhijit/Shubham/ejnmmi-dpnn/Codes/Checkpoints/ALL_BULK_SET_15_to_23"
     tagsep = "_tgx_"
     create_score_sheet(rf,tagsep)
         
