@@ -320,7 +320,7 @@ def _get_class_label_list_and_volume_id_as_df(label_id_array, data_index_volume_
     """Returns a dataframe with three columns VOLUME_ID, LABEL and PREDICTED_CLASS_ID
     VOLUME_ID[i] is taken as data_index_key_map[i], make sure you feed the correct idx-key mapping.
     """
-    assert(label_id_array.shape==(108,1))# raising error in case of unintended use(using partial chunks)
+    # assert(label_id_array.shape==(108,1))# raising error in case of unintended use(using partial chunks)
     id_to_name = {0:'MSA', 1:'PSP', 2:'PD'}#DO NOT CHANGE
     df_data = []
     for idx in range(label_id_array.shape[0]):

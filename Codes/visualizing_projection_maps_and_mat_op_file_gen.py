@@ -49,11 +49,14 @@ def generate_and_save_maps(image_arr_dict, image_name_list, output_dir, cmap_nam
 
 if __name__ == '__main__':
     root_dir = '/home/abhijit/nas_drive/Abhijit/Shubham/ejnmmi-dpnn/Codes/ProjectionVisualization'
-    floc = '/home/abhijit/nas_drive/Abhijit/Shubham/ejnmmi-dpnn/Codes/ProjectionVisualization/SUB3_NEW_EXT_DATASET/PXNET_GAP_SIG_WTD_NP_TEST_RESULT_SET_15_18_19_20_21ensemble__predictions.h5'
-    mat_oploc = '/home/abhijit/nas_drive/Abhijit/Shubham/ejnmmi-dpnn/Codes/ProjectionVisualization/SUB3_NEW_EXT_DATASET/new_ext_test_Projections.mat'
-    figure_opdir = '/home/abhijit/nas_drive/Abhijit/Shubham/ejnmmi-dpnn/Codes/ProjectionVisualization/SUB3_NEW_EXT_DATASET/FIGURES'
+    floc = '/home/abhijit/nas_drive/Abhijit/Shubham/ejnmmi-dpnn/Codes/ProjectionVisualization/SUB3_NEW_EXT_DATASET/PXNET_GAP_SIG_WTD_NP_TEST_RESULT_on_training_dataSET_15_18_19_20_21_train_dataensemble__predictions.h5'
+    mat_oploc = '/home/abhijit/nas_drive/Abhijit/Shubham/ejnmmi-dpnn/Codes/ProjectionVisualization/SUB3_NEW_EXT_DATASET/new_ext_training_data_Projections.mat'
+    figure_opdir = '/home/abhijit/nas_drive/Abhijit/Shubham/ejnmmi-dpnn/Codes/ProjectionVisualization/SUB3_NEW_EXT_DATASET/TRAINING_DATA_FIGURES'
+    training_idx_to_name = '/home/abhijit/nas_drive/Abhijit/Shubham/ejnmmi-dpnn/Codes/new_ext_train_data_idx_to_vol_mapping.txt'
     
-    idx_to_name = dt.get_newext_test_parkinson_cls_data_idx_key_map()
+    with open(training_idx_to_name, 'r') as f:
+        idx_to_name = eval(f.read())
+    
     img_name_list= sorted(list(idx_to_name[k] for k in idx_to_name.keys()))
     color_maps = ['PuOr', 'PuOr_r', 'RdYlBu',  'Spectral',  'gist_rainbow_r',  'hsv', 'hsv_r', ]
     save_projections_as_mat(floc, idx_to_name, mat_oploc)
